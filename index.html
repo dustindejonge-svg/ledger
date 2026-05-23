@@ -103,12 +103,10 @@
   <div class="err" id="err"></div>
   <div id="login">
     <h2>Ledger</h2>
-    <p id="login-step1-text">Enter your email to get a one-time sign-in code.</p>
+    <p id="login-step1-text">Sign in to view your tasks.</p>
     <input id="login-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
-    <button id="send-code" class="primary">Send code</button>
-    <input id="login-code" class="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="display:none">
-    <button id="verify-code" class="primary" style="display:none">Verify &amp; sign in</button>
-    <button id="login-back" class="linkbtn" style="display:none">Use a different email</button>
+    <input id="login-password" type="password" autocomplete="current-password" placeholder="Password">
+    <button id="sign-in" class="primary">Sign in</button>
     <div class="msg" id="login-msg"></div>
   </div>
 </div>
@@ -157,9 +155,8 @@ let DATA={workflows:[],items:[]};
 let active=null;
 const AGENDA="__week__";
 
-/* ---- auth: passwordless email one-time-code ---- */
+/* ---- auth: email + password ---- */
 const SESS_KEY="ledger:session";
-let PENDING_EMAIL="";
 function el(id){return document.getElementById(id);}
 function getSession(){try{return JSON.parse(localStorage.getItem(SESS_KEY))}catch{return null}}
 function setSession(s){ s?localStorage.setItem(SESS_KEY,JSON.stringify(s)):localStorage.removeItem(SESS_KEY); }
@@ -193,42 +190,23 @@ function hideLogin(){
   el("status").textContent="read-only · synced from Cowork"; el("signout").style.display="";
 }
 function resetLoginUI(){
-  el("login-email").style.display=""; el("send-code").style.display="";
-  el("login-code").style.display="none"; el("verify-code").style.display="none";
-  el("login-back").style.display="none"; el("login-code").value="";
-  el("login-step1-text").textContent="Enter your email to get a one-time sign-in code.";
+  el("login-password").value="";
   el("login-msg").textContent=""; el("login-msg").className="msg";
 }
-async function requestCode(){
-  const email=el("login-email").value.trim(); const msg=el("login-msg"); msg.className="msg";
-  if(!email){msg.className="msg bad";msg.textContent="Enter your email.";return;}
-  el("send-code").disabled=true; msg.textContent="Sending…";
+async function signIn(){
+  const email=el("login-email").value.trim();
+  const password=el("login-password").value;
+  const msg=el("login-msg"); msg.className="msg";
+  if(!email||!password){msg.className="msg bad";msg.textContent="Enter your email and password.";return;}
+  el("sign-in").disabled=true; msg.textContent="Signing in…";
   try{
-    const r=await fetch(`${SUPABASE_URL}/auth/v1/otp`,
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,
       {method:"POST",headers:{apikey:SUPABASE_ANON,"Content-Type":"application/json"},
-       body:JSON.stringify({email,create_user:false})});
-    if(!r.ok){const d=await r.json().catch(()=>({})); throw new Error(d.msg||d.error_description||("HTTP "+r.status));}
-    PENDING_EMAIL=email;
-    el("login-email").style.display="none"; el("send-code").style.display="none";
-    el("login-step1-text").textContent="Enter the 6-digit code emailed to "+email+".";
-    el("login-code").style.display=""; el("verify-code").style.display="";
-    el("login-back").style.display=""; el("login-code").focus();
-    msg.className="msg ok"; msg.textContent="Code sent — check your email.";
-  }catch(e){ msg.className="msg bad"; msg.textContent="Couldn't send code: "+e.message; }
-  el("send-code").disabled=false;
-}
-async function verifyCode(){
-  const token=el("login-code").value.trim(); const msg=el("login-msg"); msg.className="msg";
-  if(!/^\d{6}$/.test(token)){msg.className="msg bad";msg.textContent="Enter the 6-digit code.";return;}
-  el("verify-code").disabled=true; msg.textContent="Verifying…";
-  try{
-    const r=await fetch(`${SUPABASE_URL}/auth/v1/verify`,
-      {method:"POST",headers:{apikey:SUPABASE_ANON,"Content-Type":"application/json"},
-       body:JSON.stringify({type:"email",email:PENDING_EMAIL,token})});
+       body:JSON.stringify({email,password})});
     const d=await r.json().catch(()=>({}));
-    if(!r.ok||!d.access_token) throw new Error(d.msg||("HTTP "+r.status));
+    if(!r.ok||!d.access_token) throw new Error(d.msg||d.error_description||("HTTP "+r.status));
     saveAuth(d); resetLoginUI(); hideLogin(); load();
-  }catch(e){ msg.className="msg bad"; msg.textContent="Invalid or expired code."; el("verify-code").disabled=false; }
+  }catch(e){ msg.className="msg bad"; msg.textContent="Sign-in failed: "+e.message; el("sign-in").disabled=false; }
 }
 function signOut(){ setSession(null); resetLoginUI(); showLogin(); }
 
@@ -336,11 +314,9 @@ function render(){
 
 el("refresh").onclick=load;
 el("signout").onclick=signOut;
-el("send-code").onclick=requestCode;
-el("verify-code").onclick=verifyCode;
-el("login-back").onclick=resetLoginUI;
-el("login-email").addEventListener("keydown",e=>{if(e.key==="Enter")requestCode();});
-el("login-code").addEventListener("keydown",e=>{if(e.key==="Enter")verifyCode();});
+el("sign-in").onclick=signIn;
+el("login-email").addEventListener("keydown",e=>{if(e.key==="Enter")el("login-password").focus();});
+el("login-password").addEventListener("keydown",e=>{if(e.key==="Enter")signIn();});
 load();
 </script>
 </body>
