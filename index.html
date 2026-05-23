@@ -206,7 +206,7 @@ async function requestCode(){
   try{
     const r=await fetch(`${SUPABASE_URL}/auth/v1/otp`,
       {method:"POST",headers:{apikey:SUPABASE_ANON,"Content-Type":"application/json"},
-       body:JSON.stringify({email,create_user:true})});
+       body:JSON.stringify({email,create_user:false})});
     if(!r.ok){const d=await r.json().catch(()=>({})); throw new Error(d.msg||d.error_description||("HTTP "+r.status));}
     PENDING_EMAIL=email;
     el("login-email").style.display="none"; el("send-code").style.display="none";
