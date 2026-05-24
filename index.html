@@ -90,6 +90,17 @@
   #login .msg{font-size:11.5px;min-height:15px;color:var(--ink-dim)}
   #login .msg.bad{color:#c96b5e}
   #login .msg.ok{color:var(--event)}
+  #setpw{display:none;flex-direction:column;gap:12px;max-width:320px;margin:64px auto 0;text-align:center}
+  #setpw h2{font-family:"Fraunces",serif;font-weight:600;font-size:26px}
+  #setpw p{color:var(--ink-dim);font-size:12.5px;line-height:1.6}
+  #setpw input{background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:12px 14px;font-size:15px;outline:none}
+  #setpw button.primary{background:var(--ink);color:#1a1714;border:none;border-radius:999px;
+    padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer}
+  #setpw button.primary:disabled{opacity:.5}
+  #setpw .msg{font-size:11.5px;min-height:15px;color:var(--ink-dim)}
+  #setpw .msg.bad{color:#c96b5e}
+  #setpw .msg.ok{color:var(--event)}
 </style>
 </head>
 <body>
@@ -108,6 +119,14 @@
     <input id="login-password" type="password" autocomplete="current-password" placeholder="Password">
     <button id="sign-in" class="primary">Sign in</button>
     <div class="msg" id="login-msg"></div>
+  </div>
+  <div id="setpw">
+    <h2>Set a password</h2>
+    <p>Choose a password for future sign-ins to Ledger. Minimum 8 characters.</p>
+    <input id="setpw1" type="password" autocomplete="new-password" placeholder="New password">
+    <input id="setpw2" type="password" autocomplete="new-password" placeholder="Confirm password">
+    <button id="setpw-go" class="primary">Save password</button>
+    <div class="msg" id="setpw-msg"></div>
   </div>
 </div>
 <div class="bar">
@@ -209,6 +228,47 @@ async function signIn(){
   }catch(e){ msg.className="msg bad"; msg.textContent="Sign-in failed: "+e.message; el("sign-in").disabled=false; }
 }
 function signOut(){ setSession(null); resetLoginUI(); showLogin(); }
+
+function showSetPw(){
+  el("login").style.display="none";
+  el("tabs").style.display="none"; el("list").style.display="none";
+  el("signout").style.display="none"; el("status").textContent="set a password";
+  el("setpw").style.display="flex"; el("setpw1").focus();
+}
+function setPassword(accessToken){
+  return new Promise(function(resolve){
+    showSetPw();
+    const msg=el("setpw-msg");
+    el("setpw-go").onclick=async function(){
+      const a=el("setpw1").value, b=el("setpw2").value; msg.className="msg";
+      if(a.length<8){msg.className="msg bad";msg.textContent="At least 8 characters.";return;}
+      if(a!==b){msg.className="msg bad";msg.textContent="Passwords do not match.";return;}
+      el("setpw-go").disabled=true; msg.textContent="Saving…";
+      try{
+        const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,
+          {method:"PUT",headers:{apikey:SUPABASE_ANON,Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},
+           body:JSON.stringify({password:a})});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok) throw new Error(d.msg||d.error_description||("HTTP "+r.status));
+        el("setpw1").value=""; el("setpw2").value="";
+        el("setpw").style.display="none"; resolve(true);
+      }catch(e){ msg.className="msg bad"; msg.textContent="Couldn't save: "+e.message; el("setpw-go").disabled=false; }
+    };
+  });
+}
+async function processAuthHash(){
+  if(!location.hash || location.hash.indexOf("access_token")<0) return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  const at=p.get("access_token"), rt=p.get("refresh_token");
+  const isRecovery=p.get("type")==="recovery";
+  if(at){
+    const now=Math.floor(Date.now()/1000);
+    setSession({access_token:at,refresh_token:rt,
+      expires_at:parseInt(p.get("expires_at")||"0",10)||(now+parseInt(p.get("expires_in")||"3600",10))});
+    history.replaceState(null,"",location.pathname+location.search);
+    if(isRecovery) await setPassword(at);
+  }
+}
 
 async function load(){
   const err=el("err"); err.textContent="";
@@ -317,7 +377,8 @@ el("signout").onclick=signOut;
 el("sign-in").onclick=signIn;
 el("login-email").addEventListener("keydown",e=>{if(e.key==="Enter")el("login-password").focus();});
 el("login-password").addEventListener("keydown",e=>{if(e.key==="Enter")signIn();});
-load();
+el("setpw2").addEventListener("keydown",e=>{if(e.key==="Enter")el("setpw-go").click();});
+(async function(){ await processAuthHash(); load(); })();
 </script>
 </body>
 </html>
