@@ -289,6 +289,11 @@ async function load(){
   render();
 }
 
+function lastSyncTime(){
+  let max=null;
+  for(const it of DATA.items){ if(it.updated_at && (!max || it.updated_at>max)) max=it.updated_at; }
+  return max;   // ISO string of the most recent sync write, or null if no items
+}
 function lastSeen(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{}}catch{return{}}}
 function markSeen(wfId){const s=lastSeen();s[wfId]=new Date().toISOString();localStorage.setItem(LS_KEY,JSON.stringify(s));}
 function hasNew(wfId){
@@ -348,7 +353,10 @@ function renderTabs(){
 }
 
 function render(){
-  document.getElementById("stamp").textContent=new Date().toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  const sync=lastSyncTime();
+  document.getElementById("stamp").textContent=sync
+    ?"Synced "+new Date(sync).toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})
+    :"Not yet synced";
   renderTabs();
   const list=document.getElementById("list"); list.innerHTML="";
 
