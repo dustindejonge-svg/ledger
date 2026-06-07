@@ -62,6 +62,25 @@
   .src::before{content:"↳";color:var(--ink-faint)}
   .rank{font-family:"Fraunces",serif;font-size:13px;color:var(--ink-faint);min-width:20px;text-align:right;padding-top:1px}
 
+  /* action circles (pin / done) */
+  .actions{display:flex;flex-direction:column;gap:8px;align-items:center;flex:0 0 auto}
+  .circle{width:27px;height:27px;border-radius:50%;border:1.5px solid var(--line);background:none;
+          color:var(--ink-faint);font-size:13px;line-height:1;cursor:pointer;padding:0;
+          display:flex;align-items:center;justify-content:center;transition:.15s;font-family:inherit}
+  .circle:active{transform:scale(.88)}
+  .circle.pin.on{border-color:var(--accent);color:var(--accent);background:rgba(224,164,94,.14)}
+  .item.pinned{border-color:#6b5232}
+  .item.done-pending{opacity:.45}
+  .item.done-pending .title{text-decoration:line-through}
+
+  /* undo snackbar */
+  #undo{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(54px + env(safe-area-inset-bottom));
+        background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:999px;
+        padding:9px 8px 9px 16px;font-size:12.5px;display:none;align-items:center;gap:10px;z-index:20;
+        box-shadow:0 6px 24px rgba(0,0,0,.5);white-space:nowrap}
+  #undo button{background:var(--ink);color:#1a1714;border:none;border-radius:999px;padding:6px 12px;
+        font-family:inherit;font-size:12px;font-weight:500;cursor:pointer}
+
   /* this-week grouping */
   .group-label{font-family:"Fraunces",serif;font-size:12px;color:var(--ink-faint);letter-spacing:.06em;
                text-transform:uppercase;margin:18px 4px 4px}
@@ -129,8 +148,9 @@
     <div class="msg" id="setpw-msg"></div>
   </div>
 </div>
+<div id="undo"><span id="undo-text"></span><button id="undo-btn">Undo</button></div>
 <div class="bar">
-  <span id="status">read-only · synced from Cowork</span>
+  <span id="status">synced from Cowork</span>
   <button class="refresh" id="refresh">refresh</button>
   <button class="refresh" id="signout">sign out</button>
 </div>
@@ -206,7 +226,7 @@ function showLogin(){
 function hideLogin(){
   el("login").style.display="none";
   el("tabs").style.display=""; el("list").style.display="";
-  el("status").textContent="read-only · synced from Cowork"; el("signout").style.display="";
+  el("status").textContent="synced from Cowork"; el("signout").style.display="";
 }
 function resetLoginUI(){
   el("login-password").value="";
@@ -289,6 +309,42 @@ async function load(){
   render();
 }
 
+/* ---- write-back: the ONLY columns the app may update are pinned + done_at ---- */
+async function patchItem(id,body){
+  const tok=await validToken();
+  if(!tok){ showLogin(); throw new Error("not signed in"); }
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/item?id=eq.${encodeURIComponent(id)}`,
+    {method:"PATCH",
+     headers:{apikey:SUPABASE_ANON,Authorization:"Bearer "+tok,
+              "Content-Type":"application/json",Prefer:"return=minimal"},
+     body:JSON.stringify(body)});
+  if(r.status===401){ setSession(null); showLogin(); throw new Error("signed out"); }
+  if(!r.ok) throw new Error("HTTP "+r.status);
+}
+function flashErr(m){ const e=el("err"); e.textContent=m; setTimeout(()=>{ if(e.textContent===m) e.textContent=""; },6000); }
+async function togglePin(it){
+  const v=!it.pinned; it.pinned=v; render();
+  try{ await patchItem(it.id,{pinned:v}); }
+  catch(e){ it.pinned=!v; render(); flashErr("Couldn't save pin ("+e.message+")"); }
+}
+let undoTimer=null;
+function hideUndo(){ el("undo").style.display="none"; if(undoTimer){clearTimeout(undoTimer);undoTimer=null;} }
+async function markDone(it){
+  hideUndo();
+  const stamp=new Date().toISOString();
+  it.done_at=stamp; render();
+  el("undo-text").textContent="Done · will clear at next sync";
+  el("undo").style.display="flex";
+  el("undo-btn").onclick=async()=>{
+    hideUndo(); it.done_at=null; render();
+    try{ await patchItem(it.id,{done_at:null}); }
+    catch(e){ flashErr("Undo didn't reach the database ("+e.message+")"); }
+  };
+  undoTimer=setTimeout(hideUndo,6000);
+  try{ await patchItem(it.id,{done_at:stamp}); }
+  catch(e){ it.done_at=null; hideUndo(); render(); flashErr("Couldn't mark done ("+e.message+")"); }
+}
+
 function lastSyncTime(){
   let max=null;
   for(const it of DATA.items){ if(it.updated_at && (!max || it.updated_at>max)) max=it.updated_at; }
@@ -316,11 +372,11 @@ function fmtWhen(iso,type){
 }
 
 function itemEl(it,showWf){
-  const el=document.createElement("div");
-  el.className="item"+(it.type==="event"?" event":"");
+  const node=document.createElement("div");
+  node.className="item"+(it.type==="event"?" event":"")+(it.pinned?" pinned":"")+(it.done_at?" done-pending":"");
   const w=fmtWhen(it.date,it.type);
   const wf=DATA.workflows.find(x=>x.id===it.workflow_id);
-  el.innerHTML=`
+  node.innerHTML=`
     <div class="top">
       <div>
         <div class="title">${esc(it.title)}</div>
@@ -331,9 +387,14 @@ function itemEl(it,showWf){
         </div>
         ${it.source?`<div class="src">${esc(it.source)}</div>`:""}
       </div>
-      ${!showWf?`<div class="rank">${it.sort_order}</div>`:""}
+      <div class="actions">
+        <button class="circle done" title="Mark done" aria-label="Mark done">✓</button>
+        <button class="circle pin${it.pinned?" on":""}" title="Pin to This Week" aria-label="Pin">✦</button>
+      </div>
     </div>`;
-  return el;
+  node.querySelector(".circle.done").onclick=e=>{e.stopPropagation();markDone(it);};
+  node.querySelector(".circle.pin").onclick=e=>{e.stopPropagation();togglePin(it);};
+  return node;
 }
 function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
@@ -360,12 +421,20 @@ function render(){
   renderTabs();
   const list=document.getElementById("list"); list.innerHTML="";
 
+  const open=DATA.items.filter(it=>!it.done_at);
+
   if(active===AGENDA){
     const now=new Date(); const wk=new Date(); wk.setDate(now.getDate()+7);
-    const due=DATA.items
-      .filter(it=>it.date && new Date(it.date)<=wk)
+    const pinned=open.filter(it=>it.pinned)
+      .sort((a,b)=>(a.date?new Date(a.date):Infinity)-(b.date?new Date(b.date):Infinity)||a.sort_order-b.sort_order);
+    const due=open
+      .filter(it=>!it.pinned && it.date && new Date(it.date)<=wk)
       .sort((a,b)=>new Date(a.date)-new Date(b.date));
-    if(!due.length){list.innerHTML=`<div class="empty">Nothing due in the next 7 days.<br>Enjoy it.</div>`;return;}
+    if(!pinned.length&&!due.length){list.innerHTML=`<div class="empty">Nothing pinned, nothing due in the next 7 days.<br>Enjoy it.</div>`;return;}
+    if(pinned.length){
+      const g=document.createElement("div");g.className="group-label";g.textContent="✦ Pinned";list.appendChild(g);
+      pinned.forEach(it=>list.appendChild(itemEl(it,true)));
+    }
     let lastDay="";
     due.forEach(it=>{
       const dayKey=new Date(it.date).toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"short"});
@@ -375,7 +444,8 @@ function render(){
     return;
   }
 
-  const items=DATA.items.filter(it=>it.workflow_id===active).sort((a,b)=>a.sort_order-b.sort_order);
+  const items=open.filter(it=>it.workflow_id===active)
+    .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||a.sort_order-b.sort_order);
   if(!items.length){list.innerHTML=`<div class="empty">No open items in this flow.</div>`;return;}
   items.forEach(it=>list.appendChild(itemEl(it,false)));
 }
