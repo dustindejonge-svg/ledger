@@ -486,6 +486,14 @@ function fieldHtml(label,val,warn){
   const v=(val&&String(val).trim()&&val!=="—")?esc(val):"—";
   return `<div class="field"><div class="k">${label}</div><div class="v${warn?" warn":""}">${v}</div></div>`;
 }
+function contactHtml(val){
+  if(!val||!String(val).trim()||val==="—")
+    return `<div class="field"><div class="k">Best contact</div><div class="v">—</div></div>`;
+  const m=String(val).match(/(\+?\d[\d\s]{6,}\d)/);   // first phone-like run
+  let html=esc(val);
+  if(m){ const tel=m[1].replace(/\s+/g,""); html=html.replace(esc(m[1]),`<a href="tel:${tel}" style="color:var(--accent);text-decoration:none">${esc(m[1])}</a>`); }
+  return `<div class="field"><div class="k">Best contact</div><div class="v">${html}</div></div>`;
+}
 function openSheet(r){
   const b=el("sheet-body");
   b.innerHTML=`
@@ -499,6 +507,7 @@ function openSheet(r){
       <div class="vital"><div class="k">Weight</div><div class="v">${r.weight?esc(r.weight):"—"}</div></div>
       <div class="vital"><div class="k">Height</div><div class="v">${r.height?esc(r.height):"—"}</div></div>
     </div>
+    ${contactHtml(r.contact)}
     ${fieldHtml("Procedure date", r.procedure_date?fmtProcDate(r.procedure_date).text:"Not booked")}
     ${fieldHtml("Allergies", r.allergies, true)}
     ${fieldHtml("Medical conditions", r.conditions)}
