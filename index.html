@@ -88,6 +88,44 @@
 
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
+  /* referral cards */
+  .ref{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+       padding:14px 15px;cursor:pointer;animation:rise .35s both;transition:.15s}
+  .ref::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--event);border-radius:var(--r) 0 0 var(--r)}
+  .ref:active{transform:scale(.99)}
+  .ref .name{font-family:"Fraunces",serif;font-size:16px;color:var(--ink);letter-spacing:.005em}
+  .ref .proc{font-size:12.5px;color:var(--ink-dim);line-height:1.45;margin-top:4px}
+  .ref .rmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:11px;color:var(--ink-faint)}
+  .ref .chev{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--ink-faint);font-size:16px}
+
+  /* referral detail modal */
+  #sheet{position:fixed;inset:0;z-index:30;display:none}
+  #sheet.open{display:block}
+  #sheet .scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);animation:fade .2s both}
+  #sheet .card{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:560px;
+       max-height:88vh;overflow-y:auto;background:var(--panel-2);border:1px solid var(--line);
+       border-radius:18px 18px 0 0;padding:20px 18px calc(26px + env(safe-area-inset-bottom));
+       animation:slideUp .26s cubic-bezier(.2,.8,.2,1) both}
+  #sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 16px}
+  #sheet .shead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
+  #sheet .sname{font-family:"Fraunces",serif;font-size:23px;font-weight:600;color:var(--ink);line-height:1.15}
+  #sheet .sclose{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+       background:none;color:var(--ink-dim);font-size:16px;cursor:pointer;font-family:inherit}
+  #sheet .sproc{font-size:13px;color:var(--accent);line-height:1.5;margin:6px 0 16px}
+  #sheet .vitals{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  #sheet .vital{flex:1 1 0;min-width:84px;background:var(--panel);border:1px solid var(--line);
+       border-radius:10px;padding:9px 11px}
+  #sheet .vital .k{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+  #sheet .vital .v{font-size:15px;color:var(--ink);margin-top:3px;font-family:"Fraunces",serif}
+  #sheet .field{border-top:1px solid var(--line);padding:13px 2px 0;margin-top:13px}
+  #sheet .field .k{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px}
+  #sheet .field .v{font-size:14px;color:var(--ink);line-height:1.55;white-space:pre-wrap}
+  #sheet .field .v.warn{color:#e6b07a}
+  #sheet .ssrc{margin-top:18px;font-size:11px;color:var(--ink-faint);display:flex;gap:6px;align-items:center}
+  #sheet .ssrc::before{content:"↳"}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
+
   .bar{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;
        padding:10px 0 calc(10px + env(safe-area-inset-bottom));
        background:linear-gradient(transparent, var(--bg) 40%);font-size:11px;color:var(--ink-faint)}
@@ -148,6 +186,13 @@
     <div class="msg" id="setpw-msg"></div>
   </div>
 </div>
+<div id="sheet" aria-hidden="true">
+  <div class="scrim" id="sheet-scrim"></div>
+  <div class="card" role="dialog" aria-modal="true" aria-label="Referral details">
+    <div class="grab"></div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
 <div id="undo"><span id="undo-text"></span><button id="undo-btn">Undo</button></div>
 <div class="bar">
   <span id="status">synced from Cowork</span>
@@ -190,9 +235,10 @@ const MOCK = {
 };
 function isoIn(days){const d=new Date();d.setDate(d.getDate()+days);return d.toISOString();}
 
-let DATA={workflows:[],items:[]};
+let DATA={workflows:[],items:[],referrals:[]};
 let active=null;
 const AGENDA="__week__";
+const REFERRALS="__referrals__";
 
 /* ---- auth: email + password ---- */
 const SESS_KEY="ledger:session";
@@ -303,7 +349,13 @@ async function load(){
     ]);
     if(w.status===401||i.status===401){ setSession(null); showLogin(); return; }
     if(!w.ok||!i.ok) throw new Error("HTTP "+w.status+"/"+i.status);
-    DATA={workflows:await w.json(),items:await i.json()};
+    DATA={workflows:await w.json(),items:await i.json(),referrals:[]};
+    // Referrals (PHI, auth-only). Tolerant: if the table isn't created yet
+    // or returns nothing, the rest of the app still works.
+    try{
+      const rf=await fetch(`${SUPABASE_URL}/rest/v1/referral?select=*&order=sort_order`,{headers:h});
+      if(rf.ok) DATA.referrals=await rf.json();
+    }catch(_){}
   }catch(e){ err.textContent="Couldn't reach the database. ("+e.message+")"; return; }
   if(active===null) active=AGENDA;
   render();
@@ -353,6 +405,10 @@ function lastSyncTime(){
 function lastSeen(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{}}catch{return{}}}
 function markSeen(wfId){const s=lastSeen();s[wfId]=new Date().toISOString();localStorage.setItem(LS_KEY,JSON.stringify(s));}
 function hasNew(wfId){
+  if(wfId===REFERRALS){
+    const s=lastSeen()[wfId]; if(!s) return DATA.referrals.length>0;
+    return DATA.referrals.some(r=>r.updated_at>s);
+  }
   const s=lastSeen()[wfId]; if(!s) return DATA.items.some(it=>it.workflow_id===wfId);
   return DATA.items.some(it=>it.workflow_id===wfId && it.updated_at>s);
 }
@@ -398,6 +454,62 @@ function itemEl(it,showWf){
 }
 function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
+/* ---- patient referrals (read-only, PHI: first name + last initial, age not DOB) ---- */
+function fmtProcDate(iso){
+  if(!iso) return {text:"Not booked",cls:""};
+  const d=new Date(iso+"T00:00:00"),now=new Date();
+  const days=Math.round((d-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+  const lbl=d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+  let rel,cls="";
+  if(days<0){rel="past";cls="past";}
+  else if(days===0){rel="today";cls="soon";}
+  else if(days<=7){rel=`in ${days}d`;cls="soon";}
+  else rel=`in ${days}d`;
+  return {text:`${lbl} · ${rel}`,cls};
+}
+function refEl(r){
+  const node=document.createElement("div");
+  node.className="ref";
+  const pd=fmtProcDate(r.procedure_date);
+  node.innerHTML=`
+    <div class="name">${esc(r.patient)}</div>
+    <div class="proc">${esc(r.procedure||"—")}</div>
+    <div class="rmeta">
+      <span class="when ${pd.cls}">${esc(pd.text)}</span>
+      ${r.age?`<span class="wf-tag">· ${esc(r.age)}</span>`:""}
+    </div>
+    <span class="chev">›</span>`;
+  node.onclick=()=>openSheet(r);
+  return node;
+}
+function fieldHtml(label,val,warn){
+  const v=(val&&String(val).trim()&&val!=="—")?esc(val):"—";
+  return `<div class="field"><div class="k">${label}</div><div class="v${warn?" warn":""}">${v}</div></div>`;
+}
+function openSheet(r){
+  const b=el("sheet-body");
+  b.innerHTML=`
+    <div class="shead">
+      <div class="sname">${esc(r.patient)}</div>
+      <button class="sclose" id="sheet-close" aria-label="Close">✕</button>
+    </div>
+    <div class="sproc">${esc(r.procedure||"—")}</div>
+    <div class="vitals">
+      <div class="vital"><div class="k">Age</div><div class="v">${r.age?esc(r.age):"—"}</div></div>
+      <div class="vital"><div class="k">Weight</div><div class="v">${r.weight?esc(r.weight):"—"}</div></div>
+      <div class="vital"><div class="k">Height</div><div class="v">${r.height?esc(r.height):"—"}</div></div>
+    </div>
+    ${fieldHtml("Procedure date", r.procedure_date?fmtProcDate(r.procedure_date).text:"Not booked")}
+    ${fieldHtml("Allergies", r.allergies, true)}
+    ${fieldHtml("Medical conditions", r.conditions)}
+    ${fieldHtml("Current medications", r.medications)}
+    ${fieldHtml("Additional notes", r.notes)}
+    ${r.source?`<div class="ssrc">${esc(r.source)}</div>`:""}`;
+  el("sheet").classList.add("open"); el("sheet").setAttribute("aria-hidden","false");
+  el("sheet-close").onclick=closeSheet;
+}
+function closeSheet(){ el("sheet").classList.remove("open"); el("sheet").setAttribute("aria-hidden","true"); }
+
 function renderTabs(){
   const t=document.getElementById("tabs"); t.innerHTML="";
   const mk=(id,name)=>{
@@ -409,6 +521,7 @@ function renderTabs(){
     return b;
   };
   t.appendChild(mk(AGENDA,"This Week"));
+  if(DATA.referrals && DATA.referrals.length) t.appendChild(mk(REFERRALS,"Patient Referrals"));
   DATA.workflows.sort((a,b)=>a.sort_order-b.sort_order)
     .forEach(w=>t.appendChild(mk(w.id,w.name)));
 }
@@ -422,6 +535,14 @@ function render(){
   const list=document.getElementById("list"); list.innerHTML="";
 
   const open=DATA.items.filter(it=>!it.done_at);
+
+  if(active===REFERRALS){
+    const refs=(DATA.referrals||[]).slice()
+      .sort((a,b)=>a.sort_order-b.sort_order);
+    if(!refs.length){list.innerHTML=`<div class="empty">No patient referrals yet.</div>`;return;}
+    refs.forEach(r=>list.appendChild(refEl(r)));
+    return;
+  }
 
   if(active===AGENDA){
     const now=new Date(); const wk=new Date(); wk.setDate(now.getDate()+7);
@@ -452,6 +573,8 @@ function render(){
 
 el("refresh").onclick=load;
 el("signout").onclick=signOut;
+el("sheet-scrim").onclick=closeSheet;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
 el("sign-in").onclick=signIn;
 el("login-email").addEventListener("keydown",e=>{if(e.key==="Enter")el("login-password").focus();});
 el("login-password").addEventListener("keydown",e=>{if(e.key==="Enter")signIn();});
