@@ -123,6 +123,14 @@
   #sheet .field .v.warn{color:#e6b07a}
   #sheet .ssrc{margin-top:18px;font-size:11px;color:var(--ink-faint);display:flex;gap:6px;align-items:center}
   #sheet .ssrc::before{content:"↳"}
+#sheet .smsblock{border-top:1px solid var(--line);padding:13px 2px 0;margin-top:13px}
+#sheet .smsblock .khead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+#sheet .smsblock .k{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+#sheet .smscopy{background:var(--accent);color:#1a1714;border:none;border-radius:999px;padding:5px 12px;
+font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+#sheet .smscopy:active{transform:scale(.94)}
+#sheet .smsblock .v{font-size:13.5px;color:var(--ink);line-height:1.55;white-space:pre-wrap;
+background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   @keyframes slideUp{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
 
@@ -494,6 +502,12 @@ function contactHtml(val){
   if(m){ const tel=m[1].replace(/\s+/g,""); html=html.replace(esc(m[1]),`<a href="tel:${tel}" style="color:var(--accent);text-decoration:none">${esc(m[1])}</a>`); }
   return `<div class="field"><div class="k">Best contact</div><div class="v">${html}</div></div>`;
 }
+function smsHtml(val){
+if(!val||!String(val).trim()||val==="\u2014") return "";
+return `<div class="smsblock"><div class="khead"><span class="k">Call-back SMS</span>`+
+`<button id="sms-copy" class="smscopy" type="button">Copy SMS</button></div>`+
+`<div class="v" id="sms-text">${esc(val)}</div></div>`;
+}
 function openSheet(r){
   const b=el("sheet-body");
   b.innerHTML=`
@@ -508,6 +522,7 @@ function openSheet(r){
       <div class="vital"><div class="k">Height</div><div class="v">${r.height?esc(r.height):"—"}</div></div>
     </div>
     ${contactHtml(r.contact)}
+${smsHtml(r.sms)}
     ${fieldHtml("Procedure date", r.procedure_date?fmtProcDate(r.procedure_date).text:"Not booked")}
     ${fieldHtml("Allergies", r.allergies, true)}
     ${fieldHtml("Medical conditions", r.conditions)}
@@ -516,6 +531,11 @@ function openSheet(r){
     ${r.source?`<div class="ssrc">${esc(r.source)}</div>`:""}`;
   el("sheet").classList.add("open"); el("sheet").setAttribute("aria-hidden","false");
   el("sheet-close").onclick=closeSheet;
+var _sc=el("sms-copy");
+if(_sc){ _sc.onclick=function(){ var t=(r.sms||"");
+function ok(){_sc.textContent="Copied \u2713";setTimeout(function(){_sc.textContent="Copy SMS";},1500);}
+function fb(){var ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand("copy");ok();}catch(e){_sc.textContent="Copy failed";}document.body.removeChild(ta);}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok).catch(fb);}else{fb();} }; }
 }
 function closeSheet(){ el("sheet").classList.remove("open"); el("sheet").setAttribute("aria-hidden","true"); }
 
