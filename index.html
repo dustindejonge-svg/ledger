@@ -247,6 +247,7 @@ let DATA={workflows:[],items:[],referrals:[]};
 let active=null;
 const AGENDA="__week__";
 const REFERRALS="__referrals__";
+const UPCOMING="__upcoming__";
 
 /* ---- auth: email + password ---- */
 const SESS_KEY="ledger:session";
@@ -412,10 +413,18 @@ function lastSyncTime(){
 }
 function lastSeen(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{}}catch{return{}}}
 function markSeen(wfId){const s=lastSeen();s[wfId]=new Date().toISOString();localStorage.setItem(LS_KEY,JSON.stringify(s));}
+function refRows(){return (DATA.referrals||[]).filter(r=>r.stage!=="upcoming");}
+function upcomingRows(){return (DATA.referrals||[]).filter(r=>r.stage==="upcoming");}
 function hasNew(wfId){
   if(wfId===REFERRALS){
-    const s=lastSeen()[wfId]; if(!s) return DATA.referrals.length>0;
-    return DATA.referrals.some(r=>r.updated_at>s);
+    const rows=refRows();
+    const s=lastSeen()[wfId]; if(!s) return rows.length>0;
+    return rows.some(r=>r.updated_at>s);
+  }
+  if(wfId===UPCOMING){
+    const rows=upcomingRows();
+    const s=lastSeen()[wfId]; if(!s) return rows.length>0;
+    return rows.some(r=>r.updated_at>s);
   }
   const s=lastSeen()[wfId]; if(!s) return DATA.items.some(it=>it.workflow_id===wfId);
   return DATA.items.some(it=>it.workflow_id===wfId && it.updated_at>s);
@@ -550,9 +559,10 @@ function renderTabs(){
     return b;
   };
   t.appendChild(mk(AGENDA,"This Week"));
-  if(DATA.referrals && DATA.referrals.length) t.appendChild(mk(REFERRALS,"Patient Referrals"));
+  if(refRows().length) t.appendChild(mk(REFERRALS,"Patient Referrals"));
   DATA.workflows.sort((a,b)=>a.sort_order-b.sort_order)
     .forEach(w=>t.appendChild(mk(w.id,w.name)));
+  if(upcomingRows().length) t.appendChild(mk(UPCOMING,"Upcoming Patients"));
 }
 
 function render(){
@@ -566,9 +576,21 @@ function render(){
   const open=DATA.items.filter(it=>!it.done_at);
 
   if(active===REFERRALS){
-    const refs=(DATA.referrals||[]).slice()
+    const refs=refRows().slice()
       .sort((a,b)=>a.sort_order-b.sort_order);
     if(!refs.length){list.innerHTML=`<div class="empty">No patient referrals yet.</div>`;return;}
+    refs.forEach(r=>list.appendChild(refEl(r)));
+    return;
+  }
+
+  if(active===UPCOMING){
+    const refs=upcomingRows().slice()
+      .sort((a,b)=>{
+        const ad=a.procedure_date?new Date(a.procedure_date+"T00:00:00"):Infinity;
+        const bd=b.procedure_date?new Date(b.procedure_date+"T00:00:00"):Infinity;
+        return (ad-bd)||(a.sort_order-b.sort_order);
+      });
+    if(!refs.length){list.innerHTML=`<div class="empty">No upcoming patients.<br>Assessed patients appear here until the day after their procedure.</div>`;return;}
     refs.forEach(r=>list.appendChild(refEl(r)));
     return;
   }
