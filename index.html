@@ -166,6 +166,69 @@ background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:
   #setpw .msg{font-size:11.5px;min-height:15px;color:var(--ink-dim)}
   #setpw .msg.bad{color:#c96b5e}
   #setpw .msg.ok{color:var(--event)}
+  /* sub-tabs inside a project (Tasks / Brief / Timeline) */
+  .subtabs{display:none;gap:0;margin:0 2px 10px;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel)}
+  .subtab{flex:1 1 0;background:none;border:none;border-right:1px solid var(--line);color:var(--ink-dim);
+          padding:9px 4px;font-family:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+  .subtab:last-child{border-right:none}
+  .subtab[aria-selected="true"]{background:var(--panel-2);color:var(--ink);font-weight:500;box-shadow:inset 0 -2px 0 var(--accent)}
+  .subtab .n{color:var(--ink-faint);font-size:11px;margin-left:3px}
+
+  /* brief */
+  .bsec{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;animation:rise .35s both}
+  .bsec h3{font-family:"Fraunces",serif;font-weight:500;font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+           color:var(--ink-faint);margin-bottom:8px}
+  .bsec p{font-size:14px;line-height:1.55;color:var(--ink)}
+  .bsec ol{margin:0 0 0 20px;font-size:14px;line-height:1.5}
+  .bsec ol li{margin:3px 0;padding-left:2px}
+  .bsec .none{color:var(--ink-faint);font-size:13px}
+  .bsec .count{margin-top:8px;font-size:12.5px;color:var(--event)}
+  .brow{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
+  .brow:first-of-type{border-top:none;padding-top:0}
+  .brow:last-child{padding-bottom:0}
+  .brow .who{font-size:14px;color:var(--ink);line-height:1.4}
+  .brow .what{font-size:12.5px;color:var(--ink-dim);line-height:1.45;margin-top:2px}
+  .brow .since{font-size:11px;color:var(--ink-faint);margin-top:4px}
+  .brow .since.chase{color:#c96b5e}
+  .chasetag{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:6px;
+            border:1px solid #6b3a33;color:#e08a7c;margin-left:6px}
+  .drow{display:flex;gap:12px;font-size:13px;line-height:1.45;padding:4px 0}
+  .drow .d{flex:0 0 58px;color:var(--accent);font-size:12px;padding-top:1px}
+  .drow .t{color:var(--ink)}
+  .bsec.meeting{border-color:#6b5232;background:linear-gradient(180deg,rgba(224,164,94,.09),var(--panel) 70%)}
+  .bsec.meeting h3{color:var(--accent)}
+  .bsec.meeting .mtitle{font-family:"Fraunces",serif;font-size:17px;line-height:1.3;margin-bottom:3px}
+  .bsec.meeting .mwhen{font-size:12px;color:var(--ink-dim);margin-bottom:10px}
+  .bsec.meeting h4{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);font-weight:400;margin:11px 0 5px}
+  .bsec.meeting ul{margin:0 0 0 17px;font-size:13.5px;line-height:1.5}
+  .bsec.meeting .qa{font-size:13.5px;line-height:1.5;margin:6px 0}
+  .bsec.meeting .qa .q{color:var(--ink-dim)}
+  .bsec.meeting .notes{font-size:13.5px;line-height:1.5;white-space:pre-wrap}
+  .updated{font-size:11px;color:var(--ink-faint);text-align:center;margin-top:4px}
+  .updated.stale{color:#c96b5e}
+
+  /* timeline */
+  .tl{position:relative;display:flex;gap:12px;padding:7px 4px 7px 2px}
+  .tl .d{flex:0 0 50px;font-size:11.5px;color:var(--ink-faint);text-align:right;padding-top:2px;white-space:nowrap}
+  .tl .b{flex:1 1 auto;border-left:1px solid var(--line);padding-left:13px;position:relative}
+  .tl .b::before{content:"";position:absolute;left:-4px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--line)}
+  .tl .t{font-size:13.5px;line-height:1.42;color:var(--ink-dim)}
+  .tl .s{font-size:10.5px;color:var(--ink-faint);margin-top:2px}
+  .tl.up .t{color:var(--ink)}
+  .tl.up .d{color:var(--accent)}
+  .tl.up .b::before{background:var(--accent)}
+  .tl.k-meeting .b::before{background:var(--event)}
+  .tl.k-bill .b::before,.tl.over .b::before{background:#c96b5e}
+  .tl.over .d{color:#c96b5e}
+  .tl .tag{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);border:1px solid var(--line);
+           border-radius:5px;padding:1px 5px;margin-left:6px;white-space:nowrap}
+  .todayline{display:flex;align-items:center;gap:10px;margin:10px 2px;color:var(--accent);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .todayline::before,.todayline::after{content:"";flex:1 1 auto;height:1px;background:var(--accent);opacity:.55}
+  .list.tight{gap:0}
+  .list.tight .group-label{margin:16px 4px 6px}
+  .item.info{cursor:pointer}
+  .item.info::before{background:var(--event)}
+  .item.chase::before{background:#c96b5e}
 </style>
 </head>
 <body>
@@ -175,6 +238,7 @@ background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:
     <span class="stamp" id="stamp"></span>
   </header>
   <nav class="tabs" id="tabs" role="tablist"></nav>
+  <nav class="subtabs" id="subtabs" role="tablist"></nav>
   <main class="list" id="list" aria-live="polite"></main>
   <div class="err" id="err"></div>
   <div id="login">
@@ -203,51 +267,46 @@ background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:
 </div>
 <div id="undo"><span id="undo-text"></span><button id="undo-btn">Undo</button></div>
 <div class="bar">
-  <span id="status">synced from Cowork</span>
+  <span id="status">signed in</span>
   <button class="refresh" id="refresh">refresh</button>
   <button class="refresh" id="signout">sign out</button>
 </div>
 
 <script>
 /* ============================================================
-   CONFIG — fill these in after you create the Supabase project.
-   Until then the app runs on MOCK data so you can see the layout.
+   Ledger web app. One file, hosted on GitHub Pages.
+   Data lives in Supabase; nothing is readable without signing in.
+   The key below is the PUBLISHABLE key (safe to be public).
    ============================================================ */
-const SUPABASE_URL  = "https://kurgccxdccjbkaxugepw.supabase.co";   // project URL
-const SUPABASE_ANON = "sb_publishable_8qUHVSNBWLHl9wwIPD70Sw_6I2ZoUnD";   // publishable (read-only) key
-/* ============================================================ */
+const SUPABASE_URL  = "https://kurgccxdccjbkaxugepw.supabase.co";
+const SUPABASE_ANON = "sb_publishable_8qUHVSNBWLHl9wwIPD70Sw_6I2ZoUnD";
 
-const LS_KEY = "ledger:lastSeen";  // per-workflow last-viewed timestamps
-
-const MOCK = {
-  workflows:[
-    {id:"w1",name:"Day Surgery",sort_order:1},
-    {id:"w2",name:"Private Practice",sort_order:2},
-    {id:"w3",name:"Hospital Build",sort_order:3},
-    {id:"w4",name:"InSafe",sort_order:4},
-    {id:"w5",name:"Equipment",sort_order:5},
-    {id:"w6",name:"Music",sort_order:6},
-    {id:"w7",name:"Life Admin",sort_order:7},
-  ],
-  items:[
-    {id:"i1",workflow_id:"w1",type:"task",title:"Confirm UEScope VL-400 quote with Multigate",sort_order:1,date:isoIn(2),source:"Multigate — Re: VL-400 pricing",updated_at:isoIn(0)},
-    {id:"i2",workflow_id:"w1",type:"task",title:"Finalise reusable-blade sterilisation workflow",sort_order:2,date:isoIn(6),source:null,updated_at:isoIn(-2)},
-    {id:"i3",workflow_id:"w1",type:"event",title:"Theatre fit-out site walkthrough",sort_order:3,date:isoIn(4),source:null,updated_at:isoIn(-3)},
-    {id:"i4",workflow_id:"w3",type:"task",title:"Call Credabl re: green loan stacking",sort_order:1,date:isoIn(1),source:"Credabl — intro call",updated_at:isoIn(0)},
-    {id:"i5",workflow_id:"w3",type:"task",title:"Decide 5★ vs 6★ Green Star cost-benefit",sort_order:2,date:isoIn(9),source:null,updated_at:isoIn(-5)},
-    {id:"i6",workflow_id:"w4",type:"task",title:"Run InSafe novelty screen on PQAI",sort_order:1,date:isoIn(3),source:null,updated_at:isoIn(-1)},
-    {id:"i7",workflow_id:"w7",type:"event",title:"Christening — bring card (\u00c1\u03be\u03b9\u03bf\u03c2)",sort_order:1,date:isoIn(5),source:null,updated_at:isoIn(-4)},
-    {id:"i8",workflow_id:"w7",type:"task",title:"Order cotton scrubs — Percent Apparel (US)",sort_order:2,date:isoIn(8),source:null,updated_at:isoIn(-6)},
-    {id:"i9",workflow_id:"w2",type:"task",title:"Lodge ARTG paperwork follow-up",sort_order:1,date:isoIn(0),source:"TGA portal notice",updated_at:isoIn(0)},
-  ]
-};
-function isoIn(days){const d=new Date();d.setDate(d.getDate()+days);return d.toISOString();}
-
-let DATA={workflows:[],items:[],referrals:[]};
-let active=null;
+/* Five project tabs. Each groups one or more to-do domains (the `workflow`
+   table keeps the old domain names, so the skills that add to-dos are unchanged).
+   The Personal domain is deliberately not listed: Ledger is for work only. */
+const PROJECTS=[
+  {id:"insafe",   name:"InSafe",            wf:["insafe"]},
+  {id:"prospect", name:"Prospect Hospital", wf:["prospect"]},
+  {id:"research", name:"Research",          wf:["research"]},
+  {id:"work",     name:"Work",              wf:["advanced-anaes","public-anaes","nitrous","sustainability"]},
+  {id:"finances", name:"Finances",          wf:["finances","income-tax","invoices"]},
+];
+const WF_PROJECT={}; PROJECTS.forEach(p=>p.wf.forEach(w=>WF_PROJECT[w]=p.id));
+const CHASE_DAYS=7;     // a "waiting on" item this old shows in This Week as "chase"
+const STALE_DAYS=14;    // a brief older than this is flagged as possibly out of date
+const LS_KEY="ledger:lastSeen2";   // per-project last-viewed timestamps
 const AGENDA="__week__";
-const REFERRALS="__referrals__";
-const UPCOMING="__upcoming__";
+const MOCKMODE=new URLSearchParams(location.search).has("mock");   // layout test with made-up data, no sign-in
+
+let DATA={workflows:[],items:[],referrals:[],briefs:[],waiting:[],timeline:[]};
+let active=null;        // AGENDA or a project id
+let sub="tasks";        // tasks | brief | timeline | patients
+
+function setAppVisible(on){
+  el("tabs").style.display=on?"":"none";
+  el("list").style.display=on?"":"none";
+  el("subtabs").style.display=(on&&active&&active!==AGENDA)?"flex":"none";
+}
 
 /* ---- auth: email + password ---- */
 const SESS_KEY="ledger:session";
@@ -274,14 +333,14 @@ async function validToken(){
   setSession(null); return null;
 }
 function showLogin(){
-  el("tabs").style.display="none"; el("list").style.display="none";
+  setAppVisible(false);
   el("status").textContent="not signed in"; el("signout").style.display="none";
   el("login").style.display="flex";
 }
 function hideLogin(){
   el("login").style.display="none";
-  el("tabs").style.display=""; el("list").style.display="";
-  el("status").textContent="synced from Cowork"; el("signout").style.display="";
+  setAppVisible(true);
+  el("status").textContent="signed in"; el("signout").style.display="";
 }
 function resetLoginUI(){
   el("login-password").value="";
@@ -306,7 +365,7 @@ function signOut(){ setSession(null); resetLoginUI(); showLogin(); }
 
 function showSetPw(){
   el("login").style.display="none";
-  el("tabs").style.display="none"; el("list").style.display="none";
+  setAppVisible(false);
   el("signout").style.display="none"; el("status").textContent="set a password";
   el("setpw").style.display="flex"; el("setpw1").focus();
 }
@@ -344,132 +403,6 @@ async function processAuthHash(){
     if(isRecovery) await setPassword(at);
   }
 }
-
-async function load(){
-  const err=el("err"); err.textContent="";
-  const tok=await validToken();
-  if(!tok){ showLogin(); return; }
-  hideLogin();
-  try{
-    const h={apikey:SUPABASE_ANON,Authorization:"Bearer "+tok};
-    const [w,i]=await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/workflow?select=*&order=sort_order`,{headers:h}),
-      fetch(`${SUPABASE_URL}/rest/v1/item?select=*&order=sort_order`,{headers:h}),
-    ]);
-    if(w.status===401||i.status===401){ setSession(null); showLogin(); return; }
-    if(!w.ok||!i.ok) throw new Error("HTTP "+w.status+"/"+i.status);
-    DATA={workflows:await w.json(),items:await i.json(),referrals:[]};
-    // Referrals (PHI, auth-only). Tolerant: if the table isn't created yet
-    // or returns nothing, the rest of the app still works.
-    try{
-      const rf=await fetch(`${SUPABASE_URL}/rest/v1/referral?select=*&order=sort_order`,{headers:h});
-      if(rf.ok) DATA.referrals=await rf.json();
-    }catch(_){}
-  }catch(e){ err.textContent="Couldn't reach the database. ("+e.message+")"; return; }
-  if(active===null) active=AGENDA;
-  render();
-}
-
-/* ---- write-back: the ONLY columns the app may update are pinned + done_at ---- */
-async function patchItem(id,body){
-  const tok=await validToken();
-  if(!tok){ showLogin(); throw new Error("not signed in"); }
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/item?id=eq.${encodeURIComponent(id)}`,
-    {method:"PATCH",
-     headers:{apikey:SUPABASE_ANON,Authorization:"Bearer "+tok,
-              "Content-Type":"application/json",Prefer:"return=minimal"},
-     body:JSON.stringify(body)});
-  if(r.status===401){ setSession(null); showLogin(); throw new Error("signed out"); }
-  if(!r.ok) throw new Error("HTTP "+r.status);
-}
-function flashErr(m){ const e=el("err"); e.textContent=m; setTimeout(()=>{ if(e.textContent===m) e.textContent=""; },6000); }
-async function togglePin(it){
-  const v=!it.pinned; it.pinned=v; render();
-  try{ await patchItem(it.id,{pinned:v}); }
-  catch(e){ it.pinned=!v; render(); flashErr("Couldn't save pin ("+e.message+")"); }
-}
-let undoTimer=null;
-function hideUndo(){ el("undo").style.display="none"; if(undoTimer){clearTimeout(undoTimer);undoTimer=null;} }
-async function markDone(it){
-  hideUndo();
-  const stamp=new Date().toISOString();
-  it.done_at=stamp; render();
-  el("undo-text").textContent="Done · will clear at next sync";
-  el("undo").style.display="flex";
-  el("undo-btn").onclick=async()=>{
-    hideUndo(); it.done_at=null; render();
-    try{ await patchItem(it.id,{done_at:null}); }
-    catch(e){ flashErr("Undo didn't reach the database ("+e.message+")"); }
-  };
-  undoTimer=setTimeout(hideUndo,6000);
-  try{ await patchItem(it.id,{done_at:stamp}); }
-  catch(e){ it.done_at=null; hideUndo(); render(); flashErr("Couldn't mark done ("+e.message+")"); }
-}
-
-function lastSyncTime(){
-  let max=null;
-  for(const it of DATA.items){ if(it.updated_at && (!max || it.updated_at>max)) max=it.updated_at; }
-  return max;   // ISO string of the most recent sync write, or null if no items
-}
-function lastSeen(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{}}catch{return{}}}
-function markSeen(wfId){const s=lastSeen();s[wfId]=new Date().toISOString();localStorage.setItem(LS_KEY,JSON.stringify(s));}
-function refRows(){return (DATA.referrals||[]).filter(r=>r.stage!=="upcoming");}
-function upcomingRows(){return (DATA.referrals||[]).filter(r=>r.stage==="upcoming");}
-function hasNew(wfId){
-  if(wfId===REFERRALS){
-    const rows=refRows();
-    const s=lastSeen()[wfId]; if(!s) return rows.length>0;
-    return rows.some(r=>r.updated_at>s);
-  }
-  if(wfId===UPCOMING){
-    const rows=upcomingRows();
-    const s=lastSeen()[wfId]; if(!s) return rows.length>0;
-    return rows.some(r=>r.updated_at>s);
-  }
-  const s=lastSeen()[wfId]; if(!s) return DATA.items.some(it=>it.workflow_id===wfId);
-  return DATA.items.some(it=>it.workflow_id===wfId && it.updated_at>s);
-}
-
-function fmtWhen(iso,type){
-  if(!iso) return null;            // undated tasks: no "when" pill
-  const d=new Date(iso),now=new Date();
-  const days=Math.round((d-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
-  const lbl=d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
-  let rel,cls="";
-  if(days<0){rel="overdue";cls="past";}
-  else if(days===0){rel="today";cls="soon";}
-  else if(days===1){rel="tomorrow";cls="soon";}
-  else if(days<=3){rel=`in ${days}d`;cls="soon";}
-  else rel=`in ${days}d`;
-  return {text:`${lbl} · ${rel}`,cls};
-}
-
-function itemEl(it,showWf){
-  const node=document.createElement("div");
-  node.className="item"+(it.type==="event"?" event":"")+(it.pinned?" pinned":"")+(it.done_at?" done-pending":"");
-  const w=fmtWhen(it.date,it.type);
-  const wf=DATA.workflows.find(x=>x.id===it.workflow_id);
-  node.innerHTML=`
-    <div class="top">
-      <div>
-        <div class="title">${esc(it.title)}</div>
-        <div class="meta">
-          <span class="pill ${it.type==="event"?"event":""}">${it.type}</span>
-          ${w?`<span class="when ${w.cls}">${w.text}</span>`:""}
-          ${showWf&&wf?`<span class="wf-tag">· ${esc(wf.name)}</span>`:""}
-        </div>
-        ${it.source?`<div class="src">${esc(it.source)}</div>`:""}
-      </div>
-      <div class="actions">
-        <button class="circle done" title="Mark done" aria-label="Mark done">✓</button>
-        <button class="circle pin${it.pinned?" on":""}" title="Pin to This Week" aria-label="Pin">✦</button>
-      </div>
-    </div>`;
-  node.querySelector(".circle.done").onclick=e=>{e.stopPropagation();markDone(it);};
-  node.querySelector(".circle.pin").onclick=e=>{e.stopPropagation();togglePin(it);};
-  return node;
-}
-function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
 /* ---- patient referrals (read-only, PHI: first name + last initial, age not DOB) ---- */
 function fmtProcDate(iso){
@@ -548,78 +481,465 @@ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.write
 }
 function closeSheet(){ el("sheet").classList.remove("open"); el("sheet").setAttribute("aria-hidden","true"); }
 
+/* ---- dates (everything is compared as local YYYY-MM-DD) ---- */
+function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function today(){return ymd(new Date());}
+function plusDays(n){const d=new Date();d.setDate(d.getDate()+n);return ymd(d);}
+function dayOf(x){ if(!x) return null; return x.length<=10?x:ymd(new Date(x)); }
+function daysFromToday(s){const a=new Date(s+"T00:00:00"),n=new Date();
+  return Math.round((a-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/86400000);}
+function fmtDay(s,opts){return new Date(s+"T00:00:00").toLocaleDateString("en-AU",opts||{day:"numeric",month:"short"});}
+function relDay(s){
+  const n=daysFromToday(s);
+  if(n<0) return {text:"overdue",cls:"past"};
+  if(n===0) return {text:"today",cls:"soon"};
+  if(n===1) return {text:"tomorrow",cls:"soon"};
+  return {text:`in ${n}d`,cls:n<=3?"soon":""};
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+/* ---- made-up data for layout tests (open the page with ?mock) ---- */
+function mockData(){
+  const ts=n=>{const d=new Date();d.setDate(d.getDate()+n);d.setHours(12,0,0,0);return d.toISOString();};
+  return {
+    workflows:[{id:"insafe",name:"2. InSafe",sort_order:2},{id:"prospect",name:"3. Prospect Private Hospital",sort_order:3},
+      {id:"research",name:"4. Research",sort_order:4},{id:"advanced-anaes",name:"5. Advanced Anaesthetics",sort_order:5},
+      {id:"public-anaes",name:"6. Public Anaesthetics",sort_order:6},{id:"nitrous",name:"7. Nitrous Oxide Reduction",sort_order:7},
+      {id:"personal",name:"8. Personal",sort_order:8},{id:"finances",name:"1. Finances",sort_order:1},
+      {id:"income-tax",name:"10. Income & Tax",sort_order:10},{id:"invoices",name:"Invoices",sort_order:11}],
+    items:[
+      {id:"T1",workflow_id:"insafe",type:"task",title:"Example: reply to the grant officer",sort_order:1,date:ts(2),source:"E001",updated_at:ts(0),pinned:true},
+      {id:"T2",workflow_id:"insafe",type:"task",title:"Example: review the draft agreement",sort_order:2,date:ts(-3),source:null,updated_at:ts(-2)},
+      {id:"T3",workflow_id:"prospect",type:"event",title:"Example: board meeting",sort_order:1,date:ts(4),source:null,updated_at:ts(-1)},
+      {id:"T4",workflow_id:"research",type:"task",title:"Example: send the revised protocol",sort_order:1,date:ts(6),source:"E002",updated_at:ts(-1)},
+      {id:"T5",workflow_id:"public-anaes",type:"task",title:"Example: submit the roster request",sort_order:1,date:null,source:null,updated_at:ts(-4)},
+      {id:"T6",workflow_id:"nitrous",type:"task",title:"Example: circulate the audit summary",sort_order:1,date:ts(12),source:null,updated_at:ts(-4)},
+      {id:"T7",workflow_id:"income-tax",type:"task",title:"Example: lodge the quarterly BAS",sort_order:1,date:ts(5),source:null,updated_at:ts(-4)},
+      {id:"T8",workflow_id:"invoices",type:"task",title:"Example: pay the insurance invoice ($100.00)",sort_order:1,date:ts(1),source:"E003",updated_at:ts(-1)},
+      {id:"T9",workflow_id:"personal",type:"task",title:"Example: personal item (should not show)",sort_order:1,date:ts(1),source:null,updated_at:ts(0)},
+    ],
+    referrals:[
+      {id:"r1",patient:"Example P.",procedure:"Example procedure",age:"40",procedure_date:plusDays(9),stage:"new",sort_order:1,updated_at:ts(0)},
+      {id:"r2",patient:"Sample Q.",procedure:"Example procedure",age:"55",procedure_date:plusDays(3),stage:"upcoming",sort_order:2,updated_at:ts(-1)},
+    ],
+    briefs:[
+      {project:"insafe",standing:"Example: the grant application is lodged and the agreement is with the lawyers. Mechanism under development.",
+       next_actions:["Reply to the grant officer","Review the draft agreement","Book the design review"],
+       meeting:{title:"Example call with the grant officer",date:plusDays(2),time:"2 pm",
+         questions:["When is the decision expected?","Is a budget revision allowed?"],
+         likely_questions:[{q:"What stage is the device at?",a:"Prototype stage; mechanism under development."}],notes:""},
+       updated_at:ts(-1)},
+      {project:"finances",standing:"Example: last quarter's BAS is lodged. One invoice is owed this week.",
+       next_actions:["Pay the insurance invoice","Lodge the quarterly BAS"],meeting:null,updated_at:ts(-20)},
+    ],
+    waiting:[
+      {id:1,project:"insafe",person:"Alex Example (lawyer)",what:"Marked-up agreement",asked_on:plusDays(-9),resolved_at:null,created_at:ts(-9)},
+      {id:2,project:"insafe",person:"Sam Sample (engineer)",what:"Quote for the next build",asked_on:plusDays(-2),resolved_at:null,created_at:ts(-2)},
+      {id:3,project:"research",person:"Ethics office",what:"Outcome of the revision",asked_on:plusDays(-15),resolved_at:null,created_at:ts(-15)},
+    ],
+    timeline:[
+      {id:1,project:"insafe",date:plusDays(20),title:"Example: grant decision expected",kind:"due",source:"E001"},
+      {id:2,project:"insafe",date:plusDays(2),title:"Example call with the grant officer",kind:"meeting",source:null},
+      {id:3,project:"insafe",date:plusDays(-1),title:"Example: agreement sent to the lawyers",kind:"event",source:"E004"},
+      {id:4,project:"insafe",date:plusDays(-12),title:"Example: grant application lodged",kind:"event",source:"Session log"},
+      {id:5,project:"insafe",date:plusDays(-45),title:"Example: design review held",kind:"event",source:"E005"},
+      {id:6,project:"finances",date:plusDays(5),title:"Example: BAS due",kind:"due",source:null},
+      {id:7,project:"finances",date:plusDays(3),title:"Example: electricity bill owed ($50.00)",kind:"bill",source:"E006"},
+      {id:8,project:"finances",date:plusDays(-30),title:"Example: BAS lodged",kind:"event",source:null},
+    ],
+  };
+}
+
+/* ---- load ---- */
+async function getAll(path,h){
+  let out=[],from=0;
+  for(;;){
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:Object.assign({},h,{"Range-Unit":"items",Range:`${from}-${from+999}`})});
+    if(r.status===401){ const e=new Error("signed out"); e.auth=true; throw e; }
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const rows=await r.json(); out=out.concat(rows);
+    if(rows.length<1000) return out;
+    from+=1000;
+  }
+}
+async function load(){
+  const err=el("err"); err.textContent="";
+  if(MOCKMODE){
+    DATA=mockData(); el("login").style.display="none"; el("status").textContent="made-up test data";
+    el("signout").style.display="none";
+    if(active===null) active=AGENDA; render(); return;
+  }
+  const tok=await validToken();
+  if(!tok){ showLogin(); return; }
+  hideLogin();
+  const h={apikey:SUPABASE_ANON,Authorization:"Bearer "+tok};
+  try{
+    const [w,i]=await Promise.all([getAll("workflow?select=*&order=sort_order",h),getAll("item?select=*&order=sort_order",h)]);
+    const next={workflows:w,items:i,referrals:[],briefs:[],waiting:[],timeline:[]};
+    // The rest is tolerant: if a table is missing or empty the app still works.
+    const opt=async(key,path)=>{ try{ next[key]=await getAll(path,h); }catch(e){ if(e.auth) throw e; } };
+    await Promise.all([
+      opt("referrals","referral?select=*&order=sort_order"),
+      opt("briefs","brief?select=*"),
+      opt("waiting","waiting?select=*&resolved_at=is.null&order=asked_on"),
+      opt("timeline","timeline?select=*&order=date.desc,id.desc"),
+    ]);
+    DATA=next;
+  }catch(e){
+    if(e.auth){ setSession(null); showLogin(); return; }
+    err.textContent="Couldn't reach the database. ("+e.message+")"; return;
+  }
+  if(active===null) active=AGENDA;
+  render();
+}
+
+/* ---- write-back. The signed-in app may change only: item.pinned, item.done_at,
+        waiting.resolved_at. The database refuses anything else. ---- */
+async function patchRow(table,id,body){
+  if(MOCKMODE) return;
+  const tok=await validToken();
+  if(!tok){ showLogin(); throw new Error("not signed in"); }
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,
+    {method:"PATCH",
+     headers:{apikey:SUPABASE_ANON,Authorization:"Bearer "+tok,
+              "Content-Type":"application/json",Prefer:"return=minimal"},
+     body:JSON.stringify(body)});
+  if(r.status===401){ setSession(null); showLogin(); throw new Error("signed out"); }
+  if(!r.ok) throw new Error("HTTP "+r.status);
+}
+function flashErr(m){ const e=el("err"); e.textContent=m; setTimeout(()=>{ if(e.textContent===m) e.textContent=""; },6000); }
+async function togglePin(it){
+  const v=!it.pinned; it.pinned=v; render();
+  try{ await patchRow("item",it.id,{pinned:v}); }
+  catch(e){ it.pinned=!v; render(); flashErr("Couldn't save pin ("+e.message+")"); }
+}
+let undoTimer=null;
+function hideUndo(){ el("undo").style.display="none"; if(undoTimer){clearTimeout(undoTimer);undoTimer=null;} }
+/* Stamp a row (to-do done, or waiting item received) with an Undo for six seconds. */
+async function stampRow(table,row,field,label){
+  hideUndo();
+  const stamp=new Date().toISOString();
+  row[field]=stamp; render();
+  el("undo-text").textContent=label;
+  el("undo").style.display="flex";
+  el("undo-btn").onclick=async()=>{
+    hideUndo(); row[field]=null; render();
+    try{ await patchRow(table,row.id,{[field]:null}); }
+    catch(e){ flashErr("Undo didn't reach the database ("+e.message+")"); }
+  };
+  undoTimer=setTimeout(hideUndo,6000);
+  try{ await patchRow(table,row.id,{[field]:stamp}); }
+  catch(e){ row[field]=null; hideUndo(); render(); flashErr("Couldn't save ("+e.message+")"); }
+}
+function markDone(it){ return stampRow("item",it,"done_at","Done"); }
+function markReceived(w){ return stampRow("waiting",w,"resolved_at","Received"); }
+
+/* ---- helpers over the data ---- */
+function project(id){return PROJECTS.find(p=>p.id===id);}
+function projectOfItem(it){return WF_PROJECT[it.workflow_id]||null;}
+function openItems(pid){
+  return DATA.items.filter(it=>!it.done_at && (pid?projectOfItem(it)===pid:!!projectOfItem(it)));
+}
+function shownItems(pid){   // open items plus ones ticked a moment ago (so Undo has something to act on)
+  return DATA.items.filter(it=>(pid?projectOfItem(it)===pid:!!projectOfItem(it)) && (!it.done_at || Date.now()-new Date(it.done_at)<7000));
+}
+function openWaiting(pid){
+  return DATA.waiting.filter(w=>(!pid||w.project===pid) && (!w.resolved_at || Date.now()-new Date(w.resolved_at)<7000));
+}
+function waitDays(w){return -daysFromToday(w.asked_on);}
+function refRows(){return (DATA.referrals||[]).filter(r=>r.stage!=="upcoming");}
+function upcomingRows(){return (DATA.referrals||[]).filter(r=>r.stage==="upcoming");}
+function briefOf(pid){return DATA.briefs.find(b=>b.project===pid)||null;}
+function wfShort(id){const w=DATA.workflows.find(x=>x.id===id);return w?w.name.replace(/^\d+\.\s*/,""):"";}
+function byDue(a,b){
+  const ad=a.date?new Date(a.date).getTime():Infinity, bd=b.date?new Date(b.date).getTime():Infinity;
+  return (ad-bd)||(a.sort_order-b.sort_order);
+}
+
+function lastSyncTime(){
+  let max=null;
+  for(const it of DATA.items){ if(it.updated_at && (!max || it.updated_at>max)) max=it.updated_at; }
+  return max;
+}
+function lastSeen(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{}}catch{return{}}}
+function markSeen(pid){const s=lastSeen();s[pid]=new Date().toISOString();try{localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
+function hasNew(pid){
+  const s=lastSeen()[pid]||"";
+  if(DATA.items.some(it=>projectOfItem(it)===pid && !it.done_at && (it.updated_at||"")>s)) return true;
+  const b=briefOf(pid); if(b && (b.updated_at||"")>s) return true;
+  if(pid==="work" && (DATA.referrals||[]).some(r=>(r.updated_at||"")>s)) return true;
+  return false;
+}
+
+/* ---- cards ---- */
+function itemEl(it,tag){
+  const node=document.createElement("div");
+  node.className="item"+(it.type==="event"?" event":"")+(it.pinned?" pinned":"")+(it.done_at?" done-pending":"");
+  let w=null;
+  if(it.date){ const d=dayOf(it.date), r=relDay(d); w={text:`${fmtDay(d)} · ${r.text}`,cls:r.cls}; }
+  node.innerHTML=`
+    <div class="top">
+      <div>
+        <div class="title">${esc(it.title)}</div>
+        <div class="meta">
+          <span class="pill ${it.type==="event"?"event":""}">${esc(it.type)}</span>
+          ${w?`<span class="when ${w.cls}">${esc(w.text)}</span>`:""}
+          ${tag?`<span class="wf-tag">· ${esc(tag)}</span>`:""}
+        </div>
+        ${it.source?`<div class="src">${esc(it.source)}</div>`:""}
+      </div>
+      <div class="actions">
+        <button class="circle done" title="Mark done" aria-label="Mark done">✓</button>
+        <button class="circle pin${it.pinned?" on":""}" title="Pin to This Week" aria-label="Pin">✦</button>
+      </div>
+    </div>`;
+  node.querySelector(".circle.done").onclick=e=>{e.stopPropagation();markDone(it);};
+  node.querySelector(".circle.pin").onclick=e=>{e.stopPropagation();togglePin(it);};
+  return node;
+}
+/* A waiting-on item shown as a card in This Week ("chase"). */
+function chaseEl(w){
+  const node=document.createElement("div");
+  node.className="item chase"+(w.resolved_at?" done-pending":"");
+  const p=project(w.project);
+  node.innerHTML=`
+    <div class="top">
+      <div>
+        <div class="title">Chase ${esc(w.person)}: ${esc(w.what)}</div>
+        <div class="meta">
+          <span class="pill">waiting</span>
+          <span class="when past">asked ${esc(fmtDay(w.asked_on))} · ${waitDays(w)} days</span>
+          ${p?`<span class="wf-tag">· ${esc(p.name)}</span>`:""}
+        </div>
+      </div>
+      <div class="actions">
+        <button class="circle done" title="Received" aria-label="Mark received">✓</button>
+      </div>
+    </div>`;
+  node.querySelector(".circle.done").onclick=e=>{e.stopPropagation();markReceived(w);};
+  return node;
+}
+/* A dated timeline line (meeting, due date, bill) shown as a card in This Week. */
+function eventEl(ev,hasPrep){
+  const node=document.createElement("div");
+  node.className="item info";
+  const r=relDay(ev.date), p=project(ev.project);
+  node.innerHTML=`
+    <div class="top">
+      <div>
+        <div class="title">${esc(ev.title)}</div>
+        <div class="meta">
+          <span class="pill event">${esc(ev.kind)}</span>
+          <span class="when ${r.cls}">${esc(fmtDay(ev.date))} · ${r.text}${ev.time?" · "+esc(ev.time):""}</span>
+          ${p?`<span class="wf-tag">· ${esc(p.name)}</span>`:""}
+          ${hasPrep?`<span class="wf-tag">· prep in Brief ›</span>`:""}
+        </div>
+      </div>
+    </div>`;
+  node.onclick=()=>{ active=ev.project; sub=hasPrep?"brief":"timeline"; markSeen(active); render(); window.scrollTo(0,0); };
+  return node;
+}
+function label(list,text){const g=document.createElement("div");g.className="group-label";g.textContent=text;list.appendChild(g);return g;}
+
+/* ---- tabs ---- */
 function renderTabs(){
-  const t=document.getElementById("tabs"); t.innerHTML="";
+  const t=el("tabs"); t.innerHTML="";
   const mk=(id,name)=>{
     const b=document.createElement("button");
     b.className="tab"; b.textContent=name; b.setAttribute("role","tab");
     b.setAttribute("aria-selected",active===id);
-    if(id!==AGENDA && hasNew(id)){const d=document.createElement("span");d.className="dot";b.appendChild(d);}
-    b.onclick=()=>{active=id; if(id!==AGENDA) markSeen(id); render();};
+    if(id!==AGENDA && active!==id && hasNew(id)){const d=document.createElement("span");d.className="dot";b.appendChild(d);}
+    b.onclick=()=>{ active=id; sub="tasks"; if(id!==AGENDA) markSeen(id); render(); window.scrollTo(0,0); };
     return b;
   };
   t.appendChild(mk(AGENDA,"This Week"));
-  if(refRows().length) t.appendChild(mk(REFERRALS,"Patient Referrals"));
-  DATA.workflows.sort((a,b)=>a.sort_order-b.sort_order)
-    .forEach(w=>t.appendChild(mk(w.id,w.name)));
-  if(upcomingRows().length) t.appendChild(mk(UPCOMING,"Upcoming Patients"));
+  PROJECTS.forEach(p=>t.appendChild(mk(p.id,p.name)));
+}
+function renderSubtabs(){
+  const s=el("subtabs"); s.innerHTML="";
+  if(active===AGENDA){ s.style.display="none"; return; }
+  s.style.display="flex";
+  const tabs=[["tasks","Tasks",openItems(active).length],["brief","Brief",null],["timeline","Timeline",null]];
+  if(active==="work" && (DATA.referrals||[]).length) tabs.push(["patients","Patients",(DATA.referrals||[]).length]);
+  if(!tabs.some(x=>x[0]===sub)) sub="tasks";
+  tabs.forEach(([id,name,n])=>{
+    const b=document.createElement("button");
+    b.className="subtab"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",sub===id);
+    b.innerHTML=esc(name)+(n?`<span class="n">${n}</span>`:"");
+    b.onclick=()=>{ sub=id; render(); };
+    s.appendChild(b);
+  });
+}
+
+/* ---- This Week: pinned, chase, overdue, and everything dated in the next 7 days ---- */
+function renderWeek(list){
+  const t=today(), end=plusDays(7);
+  const items=shownItems();
+  const pinned=items.filter(it=>it.pinned).sort(byDue);
+  const chase=openWaiting().filter(w=>waitDays(w)>=CHASE_DAYS).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
+  const rows=[];
+  items.filter(it=>!it.pinned && it.date && dayOf(it.date)<=end).forEach(it=>rows.push({day:dayOf(it.date),item:it}));
+  const prepFor=ev=>{const b=briefOf(ev.project);return !!(b&&b.meeting&&b.meeting.date===ev.date&&ev.kind==="meeting");};
+  DATA.timeline.filter(ev=>ev.kind!=="event" && ev.date>=t && ev.date<=end).forEach(ev=>rows.push({day:ev.date,ev:ev,prep:prepFor(ev)}));
+  DATA.briefs.forEach(b=>{   // a pinned meeting brief with no matching timeline line still shows
+    const m=b.meeting;
+    if(m && m.date && m.date>=t && m.date<=end && !rows.some(r=>r.ev&&r.ev.project===b.project&&r.ev.kind==="meeting"&&r.ev.date===m.date))
+      rows.push({day:m.date,ev:{project:b.project,date:m.date,title:m.title,kind:"meeting",time:m.time},prep:true});
+  });
+  rows.sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:(a.item?0:1)-(b.item?0:1));
+  if(!pinned.length && !chase.length && !rows.length){
+    list.innerHTML=`<div class="empty">Nothing pinned, nothing to chase, nothing due in the next 7 days.<br>Enjoy it.</div>`; return;
+  }
+  const tagOf=it=>{const p=project(projectOfItem(it));return p?p.name:"";};
+  if(pinned.length){ label(list,"✦ Pinned"); pinned.forEach(it=>list.appendChild(itemEl(it,tagOf(it)))); }
+  if(chase.length){ label(list,"Chase (no reply for 7 days or more)"); chase.forEach(w=>list.appendChild(chaseEl(w))); }
+  let last="";
+  rows.forEach(r=>{
+    const key=r.day<t?"Overdue":(r.day===t?"Today · ":"")+fmtDay(r.day,{weekday:"long",day:"numeric",month:"short"});
+    if(key!==last){ label(list,key); last=key; }
+    list.appendChild(r.item?itemEl(r.item,tagOf(r.item)):eventEl(r.ev,r.prep));
+  });
+}
+
+/* ---- project: Tasks ---- */
+function renderTasks(list,pid){
+  const p=project(pid);
+  const items=shownItems(pid).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||byDue(a,b));
+  if(!items.length){ list.innerHTML=`<div class="empty">No open to-dos in ${esc(p.name)}.</div>`; return; }
+  items.forEach(it=>list.appendChild(itemEl(it,p.wf.length>1?wfShort(it.workflow_id):"")));
+}
+
+/* ---- project: Brief ---- */
+function upcomingFor(pid){
+  const t=today(), out=[];
+  DATA.timeline.filter(ev=>ev.project===pid && ev.date>=t).forEach(ev=>out.push({date:ev.date,title:ev.title}));
+  openItems(pid).filter(it=>it.date && dayOf(it.date)>=t).forEach(it=>out.push({date:dayOf(it.date),title:it.title}));
+  return out.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+}
+function sec(list,title,html,cls){
+  const d=document.createElement("div"); d.className="bsec"+(cls?" "+cls:"");
+  d.innerHTML=`<h3>${esc(title)}</h3>${html}`; list.appendChild(d); return d;
+}
+function renderBrief(list,pid){
+  const b=briefOf(pid), t=today();
+  // pinned meeting brief (kept until the day after the meeting)
+  const m=b&&b.meeting;
+  if(m && m.date && m.date>=plusDays(-1)){
+    const r=relDay(m.date);
+    let h=`<div class="mtitle">${esc(m.title)}</div>
+      <div class="mwhen">${esc(fmtDay(m.date,{weekday:"long",day:"numeric",month:"short"}))}${m.time?" · "+esc(m.time):""} · ${m.date<t?"yesterday":r.text}</div>`;
+    if((m.questions||[]).length) h+=`<h4>Ask</h4><ul>${m.questions.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>`;
+    if((m.likely_questions||[]).length) h+=`<h4>If asked</h4>`+m.likely_questions.map(x=>
+      `<div class="qa"><div class="q">${esc(x.q)}</div><div>${esc(x.a)}</div></div>`).join("");
+    h+=`<h4>Notes afterwards</h4><div class="notes">${m.notes?esc(m.notes):`<span style="color:var(--ink-faint)">Tell Claude what was said after the call. Claude adds the to-dos and updates this brief.</span>`}</div>`;
+    sec(list,"Meeting brief",h,"meeting");
+  }
+  // where it stands
+  let st=b&&b.standing?`<p>${esc(b.standing)}</p>`:`<p class="none">No brief written yet.</p>`;
+  if(pid==="work"){
+    const a=refRows().length, u=upcomingRows().length;
+    if(a||u) st+=`<div class="count">${a} referral${a===1?"":"s"} to call · ${u} upcoming patient${u===1?"":"s"}</div>`;
+  }
+  sec(list,"Where it stands",st);
+  // next actions
+  const acts=(b&&b.next_actions)||[];
+  sec(list,"Next actions",acts.length?`<ol>${acts.slice(0,3).map(a=>`<li>${esc(a)}</li>`).join("")}</ol>`:`<p class="none">None listed.</p>`);
+  // waiting on
+  const ws=openWaiting(pid).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
+  const wsec=sec(list,"Waiting on",ws.length?"":`<p class="none">Nothing outstanding from anyone.</p>`);
+  ws.forEach(w=>{
+    const days=waitDays(w), chase=days>=CHASE_DAYS;
+    const row=document.createElement("div"); row.className="brow"; if(w.resolved_at) row.style.opacity=".45";
+    row.innerHTML=`<div>
+        <div class="who">${esc(w.person)}${chase?`<span class="chasetag">chase</span>`:""}</div>
+        <div class="what">${esc(w.what)}</div>
+        <div class="since${chase?" chase":""}">asked ${esc(fmtDay(w.asked_on))} · ${days===0?"today":days+" day"+(days===1?"":"s")+" ago"}</div>
+      </div>
+      <div class="actions"><button class="circle done" title="Received" aria-label="Mark received">✓</button></div>`;
+    row.querySelector(".circle.done").onclick=()=>markReceived(w);
+    wsec.appendChild(row);
+  });
+  // upcoming dates
+  const up=upcomingFor(pid).slice(0,6);
+  sec(list,"Upcoming dates",up.length?up.map(u=>
+    `<div class="drow"><span class="d">${esc(fmtDay(u.date))}</span><span class="t">${esc(u.title)}</span></div>`).join(""):`<p class="none">No dates on file.</p>`);
+  // last updated
+  const u=document.createElement("div"); u.className="updated";
+  if(b&&b.updated_at){
+    const d=dayOf(b.updated_at), age=-daysFromToday(d);
+    u.textContent=`Brief updated ${fmtDay(d,{day:"numeric",month:"short",year:"numeric"})}`+(age>STALE_DAYS?` · ${age} days ago, may be out of date`:"");
+    if(age>STALE_DAYS) u.classList.add("stale");
+  }
+  list.appendChild(u);
+}
+
+/* ---- project: Timeline (upcoming above Today, past below) ---- */
+function tlEl(r){
+  const node=document.createElement("div");
+  node.className="tl"+(r.up?" up":"")+(r.over?" over":"")+" k-"+r.kind;
+  const tag=r.kind==="event"?"":r.kind==="todo"?"to-do":r.kind;
+  node.innerHTML=`<div class="d">${esc(fmtDay(r.date))}</div>
+    <div class="b"><div class="t">${esc(r.title)}${tag?`<span class="tag">${esc(tag)}</span>`:""}</div>
+    ${r.source?`<div class="s">${esc(r.source)}</div>`:""}</div>`;
+  return node;
+}
+function renderTimeline(list,pid){
+  list.classList.add("tight");
+  const t=today(), rows=[];
+  DATA.timeline.filter(ev=>ev.project===pid).forEach(ev=>rows.push({date:ev.date,title:ev.title,kind:ev.kind||"event",source:ev.source}));
+  const overdue=[];
+  openItems(pid).filter(it=>it.date).forEach(it=>{
+    const d=dayOf(it.date), r={date:d,title:it.title,kind:"todo",source:it.source};
+    if(d<t){ r.over=true; overdue.push(r); } else rows.push(r);
+  });
+  const up=rows.filter(r=>r.date>=t).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);     // furthest first
+  const past=rows.filter(r=>r.date<t).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);   // newest first
+  if(!up.length && !past.length && !overdue.length){
+    list.innerHTML=`<div class="empty">Nothing on this timeline yet.</div>`; return;
+  }
+  if(up.length) label(list,"Upcoming");
+  up.forEach(r=>{ r.up=true; list.appendChild(tlEl(r)); });
+  const tl=document.createElement("div"); tl.className="todayline";
+  tl.textContent="Today · "+fmtDay(t,{weekday:"short",day:"numeric",month:"short"});
+  list.appendChild(tl);
+  if(overdue.length){
+    label(list,"Overdue to-dos");
+    overdue.sort((a,b)=>a.date<b.date?-1:1).forEach(r=>list.appendChild(tlEl(r)));
+  }
+  let last="";
+  past.forEach(r=>{
+    const key=fmtDay(r.date,{month:"long",year:"numeric"});
+    if(key!==last){ label(list,key); last=key; }
+    list.appendChild(tlEl(r));
+  });
+  if(up.length>7) setTimeout(()=>tl.scrollIntoView({block:"center"}),60);
+}
+
+/* ---- Work: Patients (referrals to call, then upcoming patients) ---- */
+function renderPatients(list){
+  const refs=refRows().slice().sort((a,b)=>a.sort_order-b.sort_order);
+  const ups=upcomingRows().slice().sort((a,b)=>{
+    const ad=a.procedure_date?new Date(a.procedure_date+"T00:00:00"):Infinity;
+    const bd=b.procedure_date?new Date(b.procedure_date+"T00:00:00"):Infinity;
+    return (ad-bd)||(a.sort_order-b.sort_order);
+  });
+  if(!refs.length && !ups.length){ list.innerHTML=`<div class="empty">No patient referrals.</div>`; return; }
+  if(refs.length){ label(list,"Referrals to call"); refs.forEach(r=>list.appendChild(refEl(r))); }
+  if(ups.length){ label(list,"Upcoming patients"); ups.forEach(r=>list.appendChild(refEl(r))); }
 }
 
 function render(){
   const sync=lastSyncTime();
-  document.getElementById("stamp").textContent=sync
-    ?"Synced "+new Date(sync).toLocaleString(undefined,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})
+  el("stamp").textContent=sync
+    ?"Synced "+new Date(sync).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})
     :"Not yet synced";
-  renderTabs();
-  const list=document.getElementById("list"); list.innerHTML="";
-
-  const open=DATA.items.filter(it=>!it.done_at);
-
-  if(active===REFERRALS){
-    const refs=refRows().slice()
-      .sort((a,b)=>a.sort_order-b.sort_order);
-    if(!refs.length){list.innerHTML=`<div class="empty">No patient referrals yet.</div>`;return;}
-    refs.forEach(r=>list.appendChild(refEl(r)));
-    return;
-  }
-
-  if(active===UPCOMING){
-    const refs=upcomingRows().slice()
-      .sort((a,b)=>{
-        const ad=a.procedure_date?new Date(a.procedure_date+"T00:00:00"):Infinity;
-        const bd=b.procedure_date?new Date(b.procedure_date+"T00:00:00"):Infinity;
-        return (ad-bd)||(a.sort_order-b.sort_order);
-      });
-    if(!refs.length){list.innerHTML=`<div class="empty">No upcoming patients.<br>Assessed patients appear here until the day after their procedure.</div>`;return;}
-    refs.forEach(r=>list.appendChild(refEl(r)));
-    return;
-  }
-
-  if(active===AGENDA){
-    const now=new Date(); const wk=new Date(); wk.setDate(now.getDate()+7);
-    const pinned=open.filter(it=>it.pinned)
-      .sort((a,b)=>(a.date?new Date(a.date):Infinity)-(b.date?new Date(b.date):Infinity)||a.sort_order-b.sort_order);
-    const due=open
-      .filter(it=>!it.pinned && it.date && new Date(it.date)<=wk)
-      .sort((a,b)=>new Date(a.date)-new Date(b.date));
-    if(!pinned.length&&!due.length){list.innerHTML=`<div class="empty">Nothing pinned, nothing due in the next 7 days.<br>Enjoy it.</div>`;return;}
-    if(pinned.length){
-      const g=document.createElement("div");g.className="group-label";g.textContent="✦ Pinned";list.appendChild(g);
-      pinned.forEach(it=>list.appendChild(itemEl(it,true)));
-    }
-    let lastDay="";
-    due.forEach(it=>{
-      const dayKey=new Date(it.date).toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"short"});
-      if(dayKey!==lastDay){const g=document.createElement("div");g.className="group-label";g.textContent=dayKey;list.appendChild(g);lastDay=dayKey;}
-      list.appendChild(itemEl(it,true));
-    });
-    return;
-  }
-
-  const items=open.filter(it=>it.workflow_id===active)
-    .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||a.sort_order-b.sort_order);
-  if(!items.length){list.innerHTML=`<div class="empty">No open items in this flow.</div>`;return;}
-  items.forEach(it=>list.appendChild(itemEl(it,false)));
+  renderTabs(); renderSubtabs();
+  const list=el("list"); list.innerHTML=""; list.className="list";
+  if(active===AGENDA) return renderWeek(list);
+  if(sub==="brief") return renderBrief(list,active);
+  if(sub==="timeline") return renderTimeline(list,active);
+  if(sub==="patients") return renderPatients(list);
+  renderTasks(list,active);
 }
 
 el("refresh").onclick=load;
@@ -630,7 +950,7 @@ el("sign-in").onclick=signIn;
 el("login-email").addEventListener("keydown",e=>{if(e.key==="Enter")el("login-password").focus();});
 el("login-password").addEventListener("keydown",e=>{if(e.key==="Enter")signIn();});
 el("setpw2").addEventListener("keydown",e=>{if(e.key==="Enter")el("setpw-go").click();});
-(async function(){ await processAuthHash(); load(); })();
+(async function(){ if(!MOCKMODE) await processAuthHash(); load(); })();
 </script>
 </body>
 </html>
