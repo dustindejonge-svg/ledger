@@ -167,9 +167,10 @@ background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:
   #setpw .msg.bad{color:#c96b5e}
   #setpw .msg.ok{color:var(--event)}
   /* sub-tabs inside a project (Tasks / Brief / Timeline) */
-  .subtabs{display:none;gap:0;margin:0 2px 10px;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel)}
-  .subtab{flex:1 1 0;background:none;border:none;border-right:1px solid var(--line);color:var(--ink-dim);
-          padding:9px 4px;font-family:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+  .subtabs{display:none;gap:0;margin:0 2px 10px;border:1px solid var(--line);border-radius:11px;overflow-x:auto;overflow-y:hidden;background:var(--panel);scrollbar-width:none}
+  .subtabs::-webkit-scrollbar{display:none}
+  .subtab{flex:1 0 auto;background:none;border:none;border-right:1px solid var(--line);color:var(--ink-dim);
+          padding:9px 9px;font-family:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
   .subtab:last-child{border-right:none}
   .subtab[aria-selected="true"]{background:var(--panel-2);color:var(--ink);font-weight:500;box-shadow:inset 0 -2px 0 var(--accent)}
   .subtab .n{color:var(--ink-faint);font-size:11px;margin-left:3px}
@@ -243,6 +244,12 @@ background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:
   .bsec ul li{margin:3px 0}
   .bsec.meeting .mwith{font-size:12.5px;color:var(--ink-dim);margin-bottom:8px}
   .bsec.meeting p{font-size:13.5px}
+
+  /* This Week: one quiet line per project for things owed by others */
+  .wline{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:11px;
+         padding:10px 13px;font-size:13px;color:var(--ink-dim);cursor:pointer}
+  .wline .wn{margin-left:auto;font-size:11.5px;color:var(--ink-faint)}
+  .wline .chev{color:var(--ink-faint)}
 </style>
 </head>
 <body>
@@ -714,28 +721,6 @@ function itemEl(it,tag){
   node.querySelector(".circle.pin").onclick=e=>{e.stopPropagation();togglePin(it);};
   return node;
 }
-/* A waiting-on item shown as a card in This Week ("chase"). */
-function chaseEl(w){
-  const node=document.createElement("div");
-  node.className="item chase"+(w.resolved_at?" done-pending":"");
-  const p=project(w.project);
-  node.innerHTML=`
-    <div class="top">
-      <div>
-        <div class="title">Chase ${esc(w.person)}: ${esc(w.what)}</div>
-        <div class="meta">
-          <span class="pill">waiting</span>
-          <span class="when past">asked ${esc(fmtDay(w.asked_on))} · ${waitDays(w)} days</span>
-          ${p?`<span class="wf-tag">· ${esc(p.name)}</span>`:""}
-        </div>
-      </div>
-      <div class="actions">
-        <button class="circle done" title="Received" aria-label="Mark received">✓</button>
-      </div>
-    </div>`;
-  node.querySelector(".circle.done").onclick=e=>{e.stopPropagation();markReceived(w);};
-  return node;
-}
 /* A dated timeline line (meeting, due date, bill) shown as a card in This Week. */
 function eventEl(ev,hasPrep){
   const node=document.createElement("div");
@@ -776,7 +761,9 @@ function renderSubtabs(){
   const s=el("subtabs"); s.innerHTML="";
   if(active===AGENDA){ s.style.display="none"; return; }
   s.style.display="flex";
-  const tabs=[["tasks","Tasks",openItems(active).length],["brief","Brief",null],["timeline","Timeline",null]];
+  const tabs=[["tasks","Tasks",openItems(active).length],
+              ["waiting","Waiting",openWaiting(active).filter(w=>!w.resolved_at).length],
+              ["brief","Brief",null],["timeline","Timeline",null]];
   if(active==="work" && (DATA.referrals||[]).length) tabs.push(["patients","Patients",(DATA.referrals||[]).length]);
   if(!tabs.some(x=>x[0]===sub)) sub="tasks";
   tabs.forEach(([id,name,n])=>{
@@ -793,7 +780,7 @@ function renderWeek(list){
   const t=today(), end=plusDays(7);
   const items=shownItems();
   const pinned=items.filter(it=>it.pinned).sort(byDue);
-  const chase=openWaiting().filter(w=>waitDays(w)>=CHASE_DAYS).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
+  const chase=openWaiting().filter(w=>!w.resolved_at && waitDays(w)>=CHASE_DAYS);
   const rows=[];
   items.filter(it=>!it.pinned && it.date && dayOf(it.date)<=end).forEach(it=>rows.push({day:dayOf(it.date),item:it}));
   const prepFor=ev=>{ if(ev.kind!=="meeting") return null; const m=prepBriefs(ev.project).find(x=>x.date===ev.date); return m?m.tab:null; };
@@ -807,11 +794,10 @@ function renderWeek(list){
   }));
   rows.sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:(a.item?0:1)-(b.item?0:1));
   if(!pinned.length && !chase.length && !rows.length && !calls.length){
-    list.innerHTML=`<div class="empty">Nothing pinned, nothing to chase, nothing due in the next 7 days.<br>Enjoy it.</div>`; return;
+    list.innerHTML=`<div class="empty">Nothing pinned, nothing waiting, nothing due in the next 7 days.<br>Enjoy it.</div>`; return;
   }
   const tagOf=it=>{const p=project(projectOfItem(it));return p?p.name:"";};
   if(pinned.length){ label(list,"✦ Pinned"); pinned.forEach(it=>list.appendChild(itemEl(it,tagOf(it)))); }
-  if(chase.length){ label(list,"Chase (no reply for 7 days or more)"); chase.forEach(w=>list.appendChild(chaseEl(w))); }
   if(calls.length){ label(list,"Calls to make (prep ready)"); calls.forEach(c=>list.appendChild(eventEl(c,c.tab))); }
   let last="";
   rows.forEach(r=>{
@@ -819,6 +805,17 @@ function renderWeek(list){
     if(key!==last){ label(list,key); last=key; }
     list.appendChild(r.item?itemEl(r.item,tagOf(r.item)):eventEl(r.ev,r.prep));
   });
+  if(chase.length){
+    label(list,"Waiting on others");
+    PROJECTS.forEach(p=>{
+      const n=chase.filter(w=>w.project===p.id).length; if(!n) return;
+      const all=openWaiting(p.id).filter(w=>!w.resolved_at).length;
+      const row=document.createElement("div"); row.className="wline";
+      row.innerHTML=`<span>${esc(p.name)}</span><span class="wn">${n} over 7 days${all>n?" · "+all+" in all":""}</span><span class="chev">›</span>`;
+      row.onclick=()=>{ active=p.id; sub="waiting"; bsub="general"; markSeen(p.id); render(); window.scrollTo(0,0); };
+      list.appendChild(row);
+    });
+  }
 }
 
 /* ---- project: Tasks ---- */
@@ -829,7 +826,7 @@ function renderTasks(list,pid){
   items.forEach(it=>list.appendChild(itemEl(it,p.wf.length>1?wfShort(it.workflow_id):"")));
 }
 
-/* ---- project: Brief. Tabs inside: General | Waiting on | one per meeting or call ---- */
+/* ---- project: Brief. Tabs inside: General | one per meeting or call ---- */
 /* Meeting and call briefs are stored as a list in brief.meeting (older rows held one object).
    A dated one is kept until the day after its date; an undated call stays until Claude removes it. */
 function prepBriefs(pid){
@@ -867,10 +864,8 @@ function blockHtml(lines){
   return html;
 }
 function renderBrief(list,pid){
-  const b=briefOf(pid), preps=prepBriefs(pid), ws=openWaiting(pid).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
-  const nOpen=ws.filter(w=>!w.resolved_at).length;
-  const tabs=[["general","General",""],["waiting","Waiting on"+(nOpen?" "+nOpen:""),""]]
-    .concat(preps.map(m=>["m:"+m.tab,m.tab,"prep k-"+m.kind]));
+  const b=briefOf(pid), preps=prepBriefs(pid);
+  const tabs=[["general","General",""]].concat(preps.map(m=>["m:"+m.tab,m.tab,"prep k-"+m.kind]));
   if(!tabs.some(x=>x[0]===bsub)) bsub="general";
   const strip=document.createElement("div"); strip.className="btabs"; strip.setAttribute("role","tablist");
   tabs.forEach(([id,name,cls])=>{
@@ -879,8 +874,7 @@ function renderBrief(list,pid){
     t.onclick=()=>{ bsub=id; render(); };
     strip.appendChild(t);
   });
-  list.appendChild(strip);
-  if(bsub==="waiting") return renderWaiting(list,ws);
+  if(preps.length) list.appendChild(strip);
   if(bsub.startsWith("m:")) return renderPrep(list,preps.find(m=>"m:"+m.tab===bsub));
   renderGeneral(list,pid,b);
 }
@@ -905,8 +899,10 @@ function renderGeneral(list,pid,b){
   }
   list.appendChild(u);
 }
-function renderWaiting(list,ws){
-  const wsec=sec(list,"Waiting on",ws.length?"":`<p class="none">Nothing outstanding from anyone.</p>`);
+/* ---- project: Waiting (things other people owe; kept apart from to-dos) ---- */
+function renderWaiting(list,pid){
+  const ws=openWaiting(pid).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
+  const wsec=sec(list,"Waiting on others",ws.length?"":`<p class="none">Nothing outstanding from anyone.</p>`);
   ws.forEach(w=>{
     const days=waitDays(w), chase=days>=CHASE_DAYS;
     const row=document.createElement("div"); row.className="brow"; if(w.resolved_at) row.style.opacity=".45";
@@ -920,7 +916,7 @@ function renderWaiting(list,ws){
     wsec.appendChild(row);
   });
   const n=document.createElement("div"); n.className="updated";
-  n.textContent="Tick an item when it arrives. After 7 days with no reply it shows in This Week as chase.";
+  n.textContent="Tick an item when it arrives. Anything older than 7 days is marked chase and counted at the foot of This Week.";
   list.appendChild(n);
 }
 function renderPrep(list,m){
@@ -1005,6 +1001,7 @@ function render(){
   renderTabs(); renderSubtabs();
   const list=el("list"); list.innerHTML=""; list.className="list";
   if(active===AGENDA) return renderWeek(list);
+  if(sub==="waiting") return renderWaiting(list,active);
   if(sub==="brief") return renderBrief(list,active);
   if(sub==="timeline") return renderTimeline(list,active);
   if(sub==="patients") return renderPatients(list);
