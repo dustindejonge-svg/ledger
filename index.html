@@ -229,6 +229,20 @@ background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:
   .item.info{cursor:pointer}
   .item.info::before{background:var(--event)}
   .item.chase::before{background:#c96b5e}
+
+  /* tabs inside Brief: General | Waiting on | one per meeting or call */
+  .btabs{display:flex;gap:6px;overflow-x:auto;padding:0 2px 3px;scrollbar-width:none}
+  .btabs::-webkit-scrollbar{display:none}
+  .btab{flex:0 0 auto;border:1px solid var(--line);background:none;color:var(--ink-dim);padding:6px 11px;
+        border-radius:8px;font-family:inherit;font-size:12px;white-space:nowrap;cursor:pointer}
+  .btab[aria-selected="true"]{border-color:var(--accent);color:var(--accent);background:rgba(224,164,94,.1)}
+  .btab.prep::before{content:"☎ ";opacity:.8}
+  .btab.prep.k-meeting::before{content:"◆ "}
+  .bsec p+p{margin-top:9px}
+  .bsec ul{margin:7px 0 7px 18px;font-size:14px;line-height:1.5}
+  .bsec ul li{margin:3px 0}
+  .bsec.meeting .mwith{font-size:12.5px;color:var(--ink-dim);margin-bottom:8px}
+  .bsec.meeting p{font-size:13.5px}
 </style>
 </head>
 <body>
@@ -301,6 +315,7 @@ const MOCKMODE=new URLSearchParams(location.search).has("mock");   // layout tes
 let DATA={workflows:[],items:[],referrals:[],briefs:[],waiting:[],timeline:[]};
 let active=null;        // AGENDA or a project id
 let sub="tasks";        // tasks | brief | timeline | patients
+let bsub="general";     // inside Brief: general | waiting | "m:<tab label>" for a meeting or call brief
 
 function setAppVisible(on){
   el("tabs").style.display=on?"":"none";
@@ -523,11 +538,13 @@ function mockData(){
       {id:"r2",patient:"Sample Q.",procedure:"Example procedure",age:"55",procedure_date:plusDays(3),stage:"upcoming",sort_order:2,updated_at:ts(-1)},
     ],
     briefs:[
-      {project:"insafe",standing:"Example: the grant application is lodged and the agreement is with the lawyers. Mechanism under development.",
+      {project:"insafe",standing:"## Where it stands now\nExample: the grant application is lodged and the agreement is with the lawyers. Mechanism under development.\n\nA second example paragraph.\n\n## People and who does what\n- Alex Example (lawyer): the agreement\n- Sam Sample (engineer): the next build\n\n## What happens next\nExample: wait for the grant decision, then book the design review.",
        next_actions:["Reply to the grant officer","Review the draft agreement","Book the design review"],
-       meeting:{title:"Example call with the grant officer",date:plusDays(2),time:"2 pm",
+       meeting:[{kind:"meeting",tab:"Grant officer",title:"Example call with the grant officer",date:plusDays(2),time:"2 pm",with:"Pat Example (grant officer)",purpose:"Example: find out when the decision is due.",
          questions:["When is the decision expected?","Is a budget revision allowed?"],
          likely_questions:[{q:"What stage is the device at?",a:"Prototype stage; mechanism under development."}],notes:""},
+        {kind:"call",tab:"Call lawyer",title:"Example: call the lawyer about the agreement",with:"Alex Example (lawyer)",
+         points:["Ask for the marked-up copy"],questions:["When will it be ready?"],likely_questions:[],background:"Example background."}],
        updated_at:ts(-1)},
       {project:"finances",standing:"Example: last quarter's BAS is lodged. One invoice is owed this week.",
        next_actions:["Pay the insurance invoice","Lodge the quarterly BAS"],meeting:null,updated_at:ts(-20)},
@@ -723,20 +740,20 @@ function chaseEl(w){
 function eventEl(ev,hasPrep){
   const node=document.createElement("div");
   node.className="item info";
-  const r=relDay(ev.date), p=project(ev.project);
+  const r=ev.date?relDay(ev.date):{text:"",cls:""}, p=project(ev.project);
   node.innerHTML=`
     <div class="top">
       <div>
         <div class="title">${esc(ev.title)}</div>
         <div class="meta">
           <span class="pill event">${esc(ev.kind)}</span>
-          <span class="when ${r.cls}">${esc(fmtDay(ev.date))} · ${r.text}${ev.time?" · "+esc(ev.time):""}</span>
+          ${ev.date?`<span class="when ${r.cls}">${esc(fmtDay(ev.date))} · ${r.text}${ev.time?" · "+esc(ev.time):""}</span>`:""}
           ${p?`<span class="wf-tag">· ${esc(p.name)}</span>`:""}
           ${hasPrep?`<span class="wf-tag">· prep in Brief ›</span>`:""}
         </div>
       </div>
     </div>`;
-  node.onclick=()=>{ active=ev.project; sub=hasPrep?"brief":"timeline"; markSeen(active); render(); window.scrollTo(0,0); };
+  node.onclick=()=>{ active=ev.project; sub=hasPrep?"brief":"timeline"; bsub=hasPrep?"m:"+hasPrep:"general"; markSeen(active); render(); window.scrollTo(0,0); };
   return node;
 }
 function label(list,text){const g=document.createElement("div");g.className="group-label";g.textContent=text;list.appendChild(g);return g;}
@@ -749,7 +766,7 @@ function renderTabs(){
     b.className="tab"; b.textContent=name; b.setAttribute("role","tab");
     b.setAttribute("aria-selected",active===id);
     if(id!==AGENDA && active!==id && hasNew(id)){const d=document.createElement("span");d.className="dot";b.appendChild(d);}
-    b.onclick=()=>{ active=id; sub="tasks"; if(id!==AGENDA) markSeen(id); render(); window.scrollTo(0,0); };
+    b.onclick=()=>{ active=id; sub="tasks"; bsub="general"; if(id!==AGENDA) markSeen(id); render(); window.scrollTo(0,0); };
     return b;
   };
   t.appendChild(mk(AGENDA,"This Week"));
@@ -766,7 +783,7 @@ function renderSubtabs(){
     const b=document.createElement("button");
     b.className="subtab"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",sub===id);
     b.innerHTML=esc(name)+(n?`<span class="n">${n}</span>`:"");
-    b.onclick=()=>{ sub=id; render(); };
+    b.onclick=()=>{ sub=id; bsub="general"; render(); };
     s.appendChild(b);
   });
 }
@@ -779,20 +796,23 @@ function renderWeek(list){
   const chase=openWaiting().filter(w=>waitDays(w)>=CHASE_DAYS).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
   const rows=[];
   items.filter(it=>!it.pinned && it.date && dayOf(it.date)<=end).forEach(it=>rows.push({day:dayOf(it.date),item:it}));
-  const prepFor=ev=>{const b=briefOf(ev.project);return !!(b&&b.meeting&&b.meeting.date===ev.date&&ev.kind==="meeting");};
+  const prepFor=ev=>{ if(ev.kind!=="meeting") return null; const m=prepBriefs(ev.project).find(x=>x.date===ev.date); return m?m.tab:null; };
   DATA.timeline.filter(ev=>ev.kind!=="event" && ev.date>=t && ev.date<=end).forEach(ev=>rows.push({day:ev.date,ev:ev,prep:prepFor(ev)}));
-  DATA.briefs.forEach(b=>{   // a pinned meeting brief with no matching timeline line still shows
-    const m=b.meeting;
-    if(m && m.date && m.date>=t && m.date<=end && !rows.some(r=>r.ev&&r.ev.project===b.project&&r.ev.kind==="meeting"&&r.ev.date===m.date))
-      rows.push({day:m.date,ev:{project:b.project,date:m.date,title:m.title,kind:"meeting",time:m.time},prep:true});
-  });
+  const calls=[];   // call briefs with no date: "calls to make"
+  PROJECTS.forEach(p=>prepBriefs(p.id).forEach(m=>{
+    if(!m.date){ calls.push({project:p.id,title:m.title,kind:m.kind,tab:m.tab}); return; }
+    // a dated meeting or call brief with no matching timeline line still shows
+    if(m.date>=t && m.date<=end && !rows.some(r=>r.ev&&r.ev.project===p.id&&r.ev.kind==="meeting"&&r.ev.date===m.date))
+      rows.push({day:m.date,ev:{project:p.id,date:m.date,title:m.title,kind:m.kind,time:m.time},prep:m.tab});
+  }));
   rows.sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:(a.item?0:1)-(b.item?0:1));
-  if(!pinned.length && !chase.length && !rows.length){
+  if(!pinned.length && !chase.length && !rows.length && !calls.length){
     list.innerHTML=`<div class="empty">Nothing pinned, nothing to chase, nothing due in the next 7 days.<br>Enjoy it.</div>`; return;
   }
   const tagOf=it=>{const p=project(projectOfItem(it));return p?p.name:"";};
   if(pinned.length){ label(list,"✦ Pinned"); pinned.forEach(it=>list.appendChild(itemEl(it,tagOf(it)))); }
   if(chase.length){ label(list,"Chase (no reply for 7 days or more)"); chase.forEach(w=>list.appendChild(chaseEl(w))); }
+  if(calls.length){ label(list,"Calls to make (prep ready)"); calls.forEach(c=>list.appendChild(eventEl(c,c.tab))); }
   let last="";
   rows.forEach(r=>{
     const key=r.day<t?"Overdue":(r.day===t?"Today · ":"")+fmtDay(r.day,{weekday:"long",day:"numeric",month:"short"});
@@ -809,43 +829,83 @@ function renderTasks(list,pid){
   items.forEach(it=>list.appendChild(itemEl(it,p.wf.length>1?wfShort(it.workflow_id):"")));
 }
 
-/* ---- project: Brief ---- */
-function upcomingFor(pid){
-  const t=today(), out=[];
-  DATA.timeline.filter(ev=>ev.project===pid && ev.date>=t).forEach(ev=>out.push({date:ev.date,title:ev.title}));
-  openItems(pid).filter(it=>it.date && dayOf(it.date)>=t).forEach(it=>out.push({date:dayOf(it.date),title:it.title}));
-  return out.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+/* ---- project: Brief. Tabs inside: General | Waiting on | one per meeting or call ---- */
+/* Meeting and call briefs are stored as a list in brief.meeting (older rows held one object).
+   A dated one is kept until the day after its date; an undated call stays until Claude removes it. */
+function prepBriefs(pid){
+  const b=briefOf(pid); if(!b||!b.meeting) return [];
+  const arr=Array.isArray(b.meeting)?b.meeting:[b.meeting], cutoff=plusDays(-1);
+  return arr.filter(m=>m&&m.title&&(!m.date||m.date>=cutoff))
+    .map(m=>Object.assign({},m,{kind:m.kind||"meeting",tab:m.tab||((m.date?fmtDay(m.date)+" ":"")+m.title).slice(0,16)}))
+    .sort((a,b)=>(a.date||"9999")<(b.date||"9999")?-1:(a.date||"9999")>(b.date||"9999")?1:0);
 }
 function sec(list,title,html,cls){
   const d=document.createElement("div"); d.className="bsec"+(cls?" "+cls:"");
-  d.innerHTML=`<h3>${esc(title)}</h3>${html}`; list.appendChild(d); return d;
+  d.innerHTML=(title?`<h3>${esc(title)}</h3>`:"")+html; list.appendChild(d); return d;
+}
+/* The general brief is plain text: "## " starts a section, "- " is a bullet, a blank line ends a paragraph. */
+function briefSections(text){
+  const out=[]; let cur={title:"Where it stands",lines:[]};
+  String(text||"").replace(/\r/g,"").split("\n").forEach(ln=>{
+    if(ln.startsWith("## ")){ if(cur.lines.some(x=>x.trim())) out.push(cur); cur={title:ln.slice(3).trim(),lines:[]}; }
+    else cur.lines.push(ln);
+  });
+  if(cur.lines.some(x=>x.trim())) out.push(cur);
+  return out;
+}
+function blockHtml(lines){
+  let html="", para=[], items=[];
+  const flushP=()=>{ if(para.length){ html+=`<p>${esc(para.join(" "))}</p>`; para=[]; } };
+  const flushL=()=>{ if(items.length){ html+=`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`; items=[]; } };
+  lines.forEach(ln=>{
+    const t=ln.trim();
+    if(!t){ flushP(); flushL(); }
+    else if(t.startsWith("- ")){ flushP(); items.push(t.slice(2)); }
+    else { flushL(); para.push(t); }
+  });
+  flushP(); flushL();
+  return html;
 }
 function renderBrief(list,pid){
-  const b=briefOf(pid), t=today();
-  // pinned meeting brief (kept until the day after the meeting)
-  const m=b&&b.meeting;
-  if(m && m.date && m.date>=plusDays(-1)){
-    const r=relDay(m.date);
-    let h=`<div class="mtitle">${esc(m.title)}</div>
-      <div class="mwhen">${esc(fmtDay(m.date,{weekday:"long",day:"numeric",month:"short"}))}${m.time?" · "+esc(m.time):""} · ${m.date<t?"yesterday":r.text}</div>`;
-    if((m.questions||[]).length) h+=`<h4>Ask</h4><ul>${m.questions.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>`;
-    if((m.likely_questions||[]).length) h+=`<h4>If asked</h4>`+m.likely_questions.map(x=>
-      `<div class="qa"><div class="q">${esc(x.q)}</div><div>${esc(x.a)}</div></div>`).join("");
-    h+=`<h4>Notes afterwards</h4><div class="notes">${m.notes?esc(m.notes):`<span style="color:var(--ink-faint)">Tell Claude what was said after the call. Claude adds the to-dos and updates this brief.</span>`}</div>`;
-    sec(list,"Meeting brief",h,"meeting");
-  }
-  // where it stands
-  let st=b&&b.standing?`<p>${esc(b.standing)}</p>`:`<p class="none">No brief written yet.</p>`;
-  if(pid==="work"){
-    const a=refRows().length, u=upcomingRows().length;
-    if(a||u) st+=`<div class="count">${a} referral${a===1?"":"s"} to call · ${u} upcoming patient${u===1?"":"s"}</div>`;
-  }
-  sec(list,"Where it stands",st);
-  // next actions
+  const b=briefOf(pid), preps=prepBriefs(pid), ws=openWaiting(pid).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
+  const nOpen=ws.filter(w=>!w.resolved_at).length;
+  const tabs=[["general","General",""],["waiting","Waiting on"+(nOpen?" "+nOpen:""),""]]
+    .concat(preps.map(m=>["m:"+m.tab,m.tab,"prep k-"+m.kind]));
+  if(!tabs.some(x=>x[0]===bsub)) bsub="general";
+  const strip=document.createElement("div"); strip.className="btabs"; strip.setAttribute("role","tablist");
+  tabs.forEach(([id,name,cls])=>{
+    const t=document.createElement("button"); t.className="btab"+(cls?" "+cls:""); t.textContent=name;
+    t.setAttribute("role","tab"); t.setAttribute("aria-selected",bsub===id);
+    t.onclick=()=>{ bsub=id; render(); };
+    strip.appendChild(t);
+  });
+  list.appendChild(strip);
+  if(bsub==="waiting") return renderWaiting(list,ws);
+  if(bsub.startsWith("m:")) return renderPrep(list,preps.find(m=>"m:"+m.tab===bsub));
+  renderGeneral(list,pid,b);
+}
+function renderGeneral(list,pid,b){
+  const secs=briefSections(b&&b.standing);
+  if(!secs.length) sec(list,"General brief",`<p class="none">No brief written yet.</p>`);
+  secs.forEach((x,n)=>{
+    let html=blockHtml(x.lines);
+    if(n===0 && pid==="work"){
+      const a=refRows().length, u=upcomingRows().length;
+      if(a||u) html+=`<div class="count">${a} referral${a===1?"":"s"} to call · ${u} upcoming patient${u===1?"":"s"}</div>`;
+    }
+    sec(list,x.title,html);
+  });
   const acts=(b&&b.next_actions)||[];
-  sec(list,"Next actions",acts.length?`<ol>${acts.slice(0,3).map(a=>`<li>${esc(a)}</li>`).join("")}</ol>`:`<p class="none">None listed.</p>`);
-  // waiting on
-  const ws=openWaiting(pid).sort((a,b)=>a.asked_on<b.asked_on?-1:1);
+  if(acts.length) sec(list,"Next three actions",`<ol>${acts.slice(0,3).map(a=>`<li>${esc(a)}</li>`).join("")}</ol>`);
+  const u=document.createElement("div"); u.className="updated";
+  if(b&&b.updated_at){
+    const d=dayOf(b.updated_at), age=-daysFromToday(d);
+    u.textContent=`Brief updated ${fmtDay(d,{day:"numeric",month:"short",year:"numeric"})}`+(age>STALE_DAYS?` · ${age} days ago, may be out of date`:"");
+    if(age>STALE_DAYS) u.classList.add("stale");
+  }
+  list.appendChild(u);
+}
+function renderWaiting(list,ws){
   const wsec=sec(list,"Waiting on",ws.length?"":`<p class="none">Nothing outstanding from anyone.</p>`);
   ws.forEach(w=>{
     const days=waitDays(w), chase=days>=CHASE_DAYS;
@@ -859,18 +919,27 @@ function renderBrief(list,pid){
     row.querySelector(".circle.done").onclick=()=>markReceived(w);
     wsec.appendChild(row);
   });
-  // upcoming dates
-  const up=upcomingFor(pid).slice(0,6);
-  sec(list,"Upcoming dates",up.length?up.map(u=>
-    `<div class="drow"><span class="d">${esc(fmtDay(u.date))}</span><span class="t">${esc(u.title)}</span></div>`).join(""):`<p class="none">No dates on file.</p>`);
-  // last updated
-  const u=document.createElement("div"); u.className="updated";
-  if(b&&b.updated_at){
-    const d=dayOf(b.updated_at), age=-daysFromToday(d);
-    u.textContent=`Brief updated ${fmtDay(d,{day:"numeric",month:"short",year:"numeric"})}`+(age>STALE_DAYS?` · ${age} days ago, may be out of date`:"");
-    if(age>STALE_DAYS) u.classList.add("stale");
-  }
-  list.appendChild(u);
+  const n=document.createElement("div"); n.className="updated";
+  n.textContent="Tick an item when it arrives. After 7 days with no reply it shows in This Week as chase.";
+  list.appendChild(n);
+}
+function renderPrep(list,m){
+  if(!m){ sec(list,"",`<p class="none">This brief is no longer here.</p>`); return; }
+  const t=today();
+  const when=m.date
+    ?`${fmtDay(m.date,{weekday:"long",day:"numeric",month:"short"})}${m.time?" · "+m.time:""} · ${m.date<t?"yesterday":relDay(m.date).text}`
+    :"No date set";
+  let h=`<div class="mtitle">${esc(m.title)}</div><div class="mwhen">${esc(when)}</div>`;
+  if(m.with) h+=`<div class="mwith">With ${esc(m.with)}</div>`;
+  if(m.purpose) h+=`<p>${esc(m.purpose)}</p>`;
+  const ul=a=>`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  if((m.points||[]).length) h+=`<h4>Say</h4>`+ul(m.points);
+  if((m.questions||[]).length) h+=`<h4>Ask</h4>`+ul(m.questions);
+  if((m.likely_questions||[]).length) h+=`<h4>If asked</h4>`+m.likely_questions.map(x=>
+    `<div class="qa"><div class="q">${esc(x.q)}</div><div>${esc(x.a)}</div></div>`).join("");
+  if(m.background) h+=`<h4>Background</h4><p>${esc(m.background)}</p>`;
+  h+=`<h4>Notes afterwards</h4><div class="notes">${m.notes?esc(m.notes):`<span style="color:var(--ink-faint)">Tell Claude what was said. Claude adds the to-dos, updates the brief and removes this tab.</span>`}</div>`;
+  sec(list,m.kind==="call"?"Call brief":"Meeting brief",h,"meeting");
 }
 
 /* ---- project: Timeline (upcoming above Today, past below) ---- */
